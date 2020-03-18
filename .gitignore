@@ -127,3 +127,18 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Mac
+.DS_Store
+
+# Blast dbs
+*.nhr
+*.nin
+*.nsq
+
+# Outputs
+models/
+evaluation/
+
+# chromosomes
+data/human_chrs/*.fa
