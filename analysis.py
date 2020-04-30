@@ -9,15 +9,16 @@ import matplotlib.pyplot as plt
 
 ###########################################
 # Command line interface
-this_dir = os.path.dirname(os.path.relpath(sys.argv[0]))
-default_res = "evaluation/cnnprom/icnn.csv"
+this_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
+default_out = os.path.join(this_dir, "results")
+default_res = os.path.join(this_dir, "results.csv")
 
 parser = argparse.ArgumentParser(description=r"This script will analyse a model's performance returning multiple metrics for binary classification")
 parser.add_argument('--output',
         type = str,
         help = f'Folder where the analysis files will be saved. Default: Same folder as the results file.'
         'The output folder is where all the figures and analysis files will be saved on disk',
-        default = 'test'
+        default = default_out
         )
 parser.add_argument('--results',
         type = str,
@@ -197,3 +198,8 @@ plt.ylim([-0.05, 1.05])
 plt.xlabel('Threshold')
 plt.legend(loc='upper right')
 plt.savefig(os.path.join(args.output, 'precision_recall_vs_thresholds.png'))
+
+#TODO: Add the distribution curve analysis for optimal threshold
+# For both sigmoid and softmax
+# softmax: make two - one for promoter and one for non-promoter scores
+# should be the same distributions with softmax, but different without

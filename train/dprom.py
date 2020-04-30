@@ -1,13 +1,14 @@
 import os
+import sys
 import torch
 import numpy as np
 from tqdm import tqdm
+from skorch import NeuralNetClassifier
+from skorch.callbacks import EarlyStopping, ProgressBar, Checkpoint
+
+sys.path.append(os.path.join(sys.path[0], '..'))
 from DPROM.module import DPROMModule
 from DPROM.dataset import DPROMDataset
-from skorch import NeuralNetClassifier
-from skorch.dataset import CVSplit
-from skorch.callbacks import EarlyStopping, ProgressBar, Checkpoint
-from focal_loss import FocalLoss
 
 model_folder = "models/dprom/"
 if not os.path.exists(model_folder):
@@ -31,7 +32,6 @@ net = NeuralNetClassifier(module=DPROMModule,
                                                 f_params='model.pt')],
                           batch_size=32,
                           optimizer=torch.optim.Adam,
-                          train_split=CVSplit(cv=0.1,stratified=True),
                           device='cuda' if torch.cuda.is_available() else 'cpu')
 print("Training: Started")
 net.fit(ds, y_train)

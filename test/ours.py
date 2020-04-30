@@ -5,16 +5,18 @@ import argparse
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
-from OURS.dataset_parallel import OURDataset
 from skorch import NeuralNetClassifier
 from skorch.callbacks import Checkpoint
 
+sys.path.append(os.path.join(sys.path[0], '..'))
+from OURS.dataset_parallel import OURDataset
+
 ###########################################
 # Command line interface
-this_dir = os.path.dirname(os.path.relpath(sys.argv[0]))
-default_out = os.path.join(this_dir, "results.csv")
+this_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
+default_out = os.path.join(os.path.dirname(this_dir), "results_ours.csv")
 default_ann = "data/human_complete.sga"
-default_mod = "models/dprom/model.pt"
+default_mod = "models/cnnprom/model.pt"
 
 parser = argparse.ArgumentParser(description=r"This script will test a model's performance with OUR dataset")
 parser.add_argument('-binary', 
@@ -79,7 +81,8 @@ ds = OURDataset(annotations_file=args.annotations,
                 input_length=args.input_length,
                 threshold=args.threshold,
                 stride=args.stride,
-                binary=args.binary)
+                binary=args.binary,
+                save_df=False)
 
 module_name = model_folder.split('/')[1]
 if(module_name == 'dprom'):
@@ -115,9 +118,9 @@ print("Testing: Predicting")
 y_score = net.predict_proba(ds)
 print("Testing: Predicting Done")
 if(args.binary):
-    df = pd.DataFrame(list(zip(ds.dataframe, ds.dataframe_labels, y_score)), columns=['sequence', 'label', 'prediction'])
+    df = pd.DataFrame(list(zip(ds.dataframe.sequence, ds.dataframe.label, y_score)), columns=['sequence', 'label', 'prediction'])
 else:
     logits = list(zip(*y_score))
-    df = pd.DataFrame(list(zip(ds.dataframe, ds.dataframe_labels, logits[0], logits[1])), columns=['sequence', 'label', 'prediction_0', 'prediction_1'])
+    df = pd.DataFrame(list(zip(ds.dataframe.sequence, ds.dataframe.label, logits[0], logits[1])), columns=['sequence', 'label', 'prediction_0', 'prediction_1'])
 print("Testing: Saving Results")
 df.to_csv(args.output)

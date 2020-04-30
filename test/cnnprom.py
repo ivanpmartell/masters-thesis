@@ -5,21 +5,23 @@ import argparse
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
-from CNNPROM.module import CNNPROMModule
-from CNNPROM.dataset import CNNPROMDataset
 from skorch import NeuralNetClassifier
 from skorch.callbacks import Checkpoint
 
+sys.path.append(os.path.join(sys.path[0], '..'))
+from CNNPROM.module import CNNPROMModule
+from CNNPROM.dataset import CNNPROMDataset
+
 ###########################################
 # Command line interface
-this_dir = os.path.dirname(os.path.relpath(sys.argv[0]))
-default_out = os.path.join(this_dir, "results.csv")
+this_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
+default_out = os.path.join(os.path.dirname(this_dir), "results.csv")
 default_input = "data/human_complete.fa"
 default_neg = ""
 default_neg_size = 27731 + 8256
 default_mod = "models/cnnprom/model.pt"
 
-parser = argparse.ArgumentParser(description=r"This script will test a model's performance with ICNN dataset")
+parser = argparse.ArgumentParser(description=r"This script will test a model's performance with CNNProm dataset")
 parser.add_argument('-binary', 
         type=bool, 
         help='For model: a 1 neuron sigmoid output if set, otherwise a 2 neuron softmax output',

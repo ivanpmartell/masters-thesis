@@ -139,6 +139,10 @@ dmypy.json
 # Outputs
 models/
 evaluation/
+results/
 
 # chromosomes
 data/human_chrs/*.fa
+
+# visual studio code
+.vscode/

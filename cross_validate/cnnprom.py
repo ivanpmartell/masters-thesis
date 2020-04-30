@@ -2,9 +2,14 @@ import os
 import sys
 import torch
 import numpy as np
+from numpy import average
 from tqdm import tqdm
 from skorch import NeuralNetClassifier
+from skorch.dataset import CVSplit
 from skorch.callbacks import EarlyStopping, ProgressBar, Checkpoint
+from sklearn.metrics import matthews_corrcoef, accuracy_score, precision_score, recall_score
+from sklearn.model_selection import cross_validate
+from multiscorer.multiscorer import MultiScorer
 
 sys.path.append(os.path.join(sys.path[0], '..'))
 from CNNPROM.module import CNNPROMModule
@@ -26,14 +31,25 @@ net = NeuralNetClassifier(module=CNNPROMModule,
                           criterion=torch.nn.CrossEntropyLoss,
                           max_epochs=50,
                           lr=0.001,
-                          callbacks=[EarlyStopping(patience=5),
+                          callbacks=[EarlyStopping(patience=2),
                                      ProgressBar(),
                                      Checkpoint(dirname=model_folder,
                                                 f_params='model.pt')],
                           batch_size=16,
                           optimizer=torch.optim.Adam,
-                          device='cuda' if torch.cuda.is_available() else 'cpu')
+                          train_split=CVSplit(cv=0.2,stratified=True))
 
-print("Training: Started")
-net.fit(ds, y_train)
-print("Training: Done")
+print("Cross Validation: Started")
+#scoring metrics can be modified. Predefined metrics: https://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter
+scorer = MultiScorer({
+  'accuracy': (accuracy_score, {}),
+  'precision': (precision_score, {}),
+  'recall': (recall_score, {}),
+  'mcc': (matthews_corrcoef, {})
+})
+cross_validate(net, ds, y_train, scoring=scorer, cv=2, verbose=1)
+print("Cross Validation: Done")
+results = scorer.get_results()
+
+for metric in results.keys():
+  print("%s: %.3f" % (metric, average(results[metric])))

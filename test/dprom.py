@@ -5,20 +5,22 @@ import argparse
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
-from DPROM.module import DPROMModule
-from DPROM.dataset import DPROMDataset
 from skorch import NeuralNetClassifier
 from skorch.callbacks import Checkpoint
 
+sys.path.append(os.path.join(sys.path[0], '..'))
+from DPROM.module import DPROMModule
+from DPROM.dataset import DPROMDataset
+
 ###########################################
 # Command line interface
-this_dir = os.path.dirname(os.path.relpath(sys.argv[0]))
-default_out = os.path.join(this_dir, "results.csv")
+this_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
+default_out = os.path.join(os.path.dirname(this_dir), "results.csv")
 default_input = "data/human_complete.fa"
 default_neg = ""
 default_mod = "models/dprom/model.pt"
 
-parser = argparse.ArgumentParser(description=r"This script will test a model's performance with ICNN dataset")
+parser = argparse.ArgumentParser(description=r"This script will test a model's performance with DProm dataset")
 parser.add_argument('-binary', 
         type=bool, 
         help='For model: a 1 neuron sigmoid output if set, otherwise a 2 neuron softmax output',
