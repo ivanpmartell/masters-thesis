@@ -103,6 +103,8 @@ def threshold_flipped(x):
         return 0
 
 
+#TODO: Add the distribution curve analysis for optimal threshold
+# For sigmoid now
 def create_histogram(data, colors, n_bins, title, zoom=0):
     plt.figure()
     n, bins, patches = plt.hist(x=data,bins=n_bins, color=colors,
@@ -244,8 +246,3 @@ plt.ylim([-0.05, 1.05])
 plt.xlabel('Threshold')
 plt.legend(loc='upper right')
 plt.savefig(os.path.join(args.output, 'precision_recall_vs_thresholds.png'))
-
-#TODO: Add the distribution curve analysis for optimal threshold
-# For both sigmoid and softmax
-# softmax: make two - one for promoter and one for non-promoter scores
-# should be the same distributions with softmax, but different without
