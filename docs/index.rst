@@ -6,7 +6,7 @@
 Documentation
 ======================================================================
 
-This site contains documentation for scripts created for my Master's Thesis.
+This site contains documentation for scripts created for: `Testing Deep Learning models for Promoter Recognition <https://github.com/ivanpmartell/masters-thesis>`_.
 
 .. toctree::
    :maxdepth: 2
