@@ -10,8 +10,8 @@ import matplotlib.pyplot as plt
 ###########################################
 # Command line interface
 this_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
-default_out = os.path.join(this_dir, "results_ours")
-default_res = os.path.join(this_dir, "results.csv")
+default_out = os.path.join(this_dir, "results_test")
+default_res = os.path.join(this_dir, "results/results.csv")
 
 parser = argparse.ArgumentParser(description=r"This script will analyse a model's performance returning multiple metrics for binary classification")
 parser.add_argument('--output',
