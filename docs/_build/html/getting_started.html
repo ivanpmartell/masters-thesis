@@ -34,8 +34,11 @@
             
   <div class="section" id="getting-started">
 <h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
-<p>To get started please clone the repository at <a class="reference external" href="https://github.com/ivanpmartell/masters-thesis">https://github.com/ivanpmartell/masters-thesis</a></p>
-<p>For our analysis script to work, we needed sci-kit learn’s safe indexing to work with pytorch datasets. Therefore, the following snippet to <cite>sklearn.utils.safe_indexing</cite> should be added:</p>
+<p>To get started please clone the repository with its submodules at <a class="reference external" href="https://github.com/ivanpmartell/masters-thesis">https://github.com/ivanpmartell/masters-thesis</a></p>
+<blockquote>
+<div><p>git clone –recurse-submodules <a class="reference external" href="https://github.com/ivanpmartell/masters-thesis.git">https://github.com/ivanpmartell/masters-thesis.git</a></p>
+</div></blockquote>
+<p>For our scripts to work, we needed sci-kit learn’s safe indexing to work with pytorch datasets. Therefore, the following snippet to <cite>sklearn.utils.safe_indexing</cite> should be added:</p>
 <blockquote>
 <div><dl>
 <dt>elif hasattr(X, “__getitem__”):</dt><dd><p>indices = indices if indices.flags.writeable else indices.copy()</p>
@@ -43,6 +46,35 @@
 </dd>
 </dl>
 </div></blockquote>
+<p>The project is structured in functionality by its folders:</p>
+<ul class="simple">
+<li><p>The models are contained in folders with capital letters (e.g. <cite>CNNPROM</cite>, <cite>ICNN</cite>, <cite>DPROM</cite>)</p></li>
+<li><p>The folder <cite>OURS</cite> is a placeholder for your model</p></li>
+<li><p>The folder <cite>docs</cite> is used for this documentation</p></li>
+<li><p>The folder <cite>data</cite> contains all the data necessary for the implemented models, as well as our testing methods</p></li>
+<li><p>The folders <cite>train</cite>, <cite>test</cite>, and <cite>cross_validate</cite> have the code to train, test, and cross validate the implemented models</p></li>
+<li><p>The file <cite>analysis.py</cite> contains code for analyzing the results after testing the models</p></li>
+</ul>
+<p>The logical set of steps to follow include:</p>
+<p>1 Train or cross validate a model</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Training creates a folder models with a subfolder of the trained model’s name that might include a csv file of the training data, a json file of the training history and a pt file of the trained model</p></li>
+</ul>
+</div></blockquote>
+<p>2 Test the trained model</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Testing creates the resulting csv file of the tested dataset with the model’s predicted scores and true labels</p></li>
+</ul>
+</div></blockquote>
+<p>3 Analyse the tested model’s results</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Analyzing creates a results folder with the analysis of the model’s predictions from the testing csv output previously created.</p></li>
+</ul>
+</div></blockquote>
+<p>The scripts contain arguments (e.g output folder) that can be modified by the user as needed.</p>
 </div>
 
 
