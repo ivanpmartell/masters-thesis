@@ -52,7 +52,7 @@ In case of blast data, `blast+ executables <https://ftp.ncbi.nlm.nih.gov/blast/e
 
 -An instance of a blast script is located in `data/blast/promoter_database/create_blast_database.sh`
 
-Required python libraries
+Required libraries
 =========================
 
 - pytorch: Different `installations <https://pytorch.org/get-started/locally/>`_ possible
@@ -60,7 +60,7 @@ Required python libraries
 - biopython: `pip install biopython`
 - mysql: `pip install mysql-connector-python`
 
-Running the train, cross-validation, test scripts
+Running scripts
 =================================================
 
 To run the scripts, locate the repository's directory: e.g. `/path/to/masters-thesis`.
