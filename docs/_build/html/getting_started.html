@@ -34,21 +34,19 @@
             
   <div class="section" id="getting-started">
 <h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
-<p>To get started please clone the repository with its submodules at <a class="reference external" href="https://github.com/ivanpmartell/masters-thesis">https://github.com/ivanpmartell/masters-thesis</a></p>
-<blockquote>
-<div><p>git clone –recurse-submodules <a class="reference external" href="https://github.com/ivanpmartell/masters-thesis.git">https://github.com/ivanpmartell/masters-thesis.git</a></p>
-</div></blockquote>
+<p>To get started please clone the <a class="reference external" href="https://github.com/ivanpmartell/masters-thesis">repository</a> with its submodules:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone --recurse-submodules -j8 https://github.com/ivanpmartell/masters-thesis.git
+</pre></div>
+</div>
 <p>For our scripts to work, we needed sci-kit learn’s safe indexing to work with pytorch datasets. Therefore, the following snippet to <cite>sklearn.utils.safe_indexing</cite> should be added:</p>
-<blockquote>
-<div><dl>
-<dt>elif hasattr(X, “__getitem__”):</dt><dd><p>indices = indices if indices.flags.writeable else indices.copy()</p>
-<p>return np.array([X.__getitem__(idx)[0] for idx in indices], dtype=np.float32)</p>
-</dd>
-</dl>
-</div></blockquote>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="s2">&quot;__getitem__&quot;</span><span class="p">):</span>
+  <span class="n">indices</span> <span class="o">=</span> <span class="n">indices</span> <span class="k">if</span> <span class="n">indices</span><span class="o">.</span><span class="n">flags</span><span class="o">.</span><span class="n">writeable</span> <span class="k">else</span> <span class="n">indices</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+  <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">X</span><span class="o">.</span><span class="fm">__getitem__</span><span class="p">(</span><span class="n">idx</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">indices</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+</pre></div>
+</div>
 <p>The project is structured in functionality by its folders:</p>
 <ul class="simple">
-<li><p>The models are contained in folders with capital letters (e.g. <cite>CNNPROM</cite>, <cite>ICNN</cite>, <cite>DPROM</cite>)</p></li>
+<li><p>The <cite>models</cite> are contained in folders with capital letters (e.g. <cite>CNNPROM</cite>, <cite>ICNN</cite>, <cite>DPROM</cite>)</p></li>
 <li><p>The folder <cite>OURS</cite> is a placeholder for your model</p></li>
 <li><p>The folder <cite>docs</cite> is used for this documentation</p></li>
 <li><p>The folder <cite>data</cite> contains all the data necessary for the implemented models, as well as our testing methods</p></li>
@@ -59,13 +57,14 @@
 <p>1 Train or cross validate a model</p>
 <blockquote>
 <div><ul class="simple">
-<li><p>Training creates a folder models with a subfolder of the trained model’s name that might include a csv file of the training data, a json file of the training history and a pt file of the trained model</p></li>
+<li><p>Training creates a folder models with a subfolder of the trained model’s name that might include a csv file of the training data, a json file of the training history and a pt file of the trained model.</p></li>
+<li><p>Depending on the model, acquisition of additional data might be required.</p></li>
 </ul>
 </div></blockquote>
 <p>2 Test the trained model</p>
 <blockquote>
 <div><ul class="simple">
-<li><p>Testing creates the resulting csv file of the tested dataset with the model’s predicted scores and true labels</p></li>
+<li><p>Testing creates the resulting csv file of the tested dataset with the model’s predicted scores and true labels.</p></li>
 </ul>
 </div></blockquote>
 <p>3 Analyse the tested model’s results</p>
@@ -75,6 +74,15 @@
 </ul>
 </div></blockquote>
 <p>The scripts contain arguments (e.g output folder) that can be modified by the user as needed.</p>
+</div>
+<div class="section" id="data-acquisition">
+<h1>Data acquisition<a class="headerlink" href="#data-acquisition" title="Permalink to this headline">¶</a></h1>
+<p>When needed, the data folder provides bash scripts to download necessary data.</p>
+<ul class="simple">
+<li><p>An instance of a downloading bash script is located in <cite>data/human_chrs/download.sh</cite></p></li>
+</ul>
+<p>In case of blast data, <a class="reference external" href="https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/">blast+ executables</a> are required for the database creation scripts to function.</p>
+<p>-An instance of a blast script is located in <cite>data/blast/promoter_database/create_blast_database.sh</cite></p>
 </div>
 
 
@@ -97,6 +105,7 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#data-acquisition">Data acquisition</a></li>
 <li class="toctree-l1"><a class="reference internal" href="help.html">Help</a></li>
 </ul>
 
@@ -135,7 +144,7 @@
       &copy;2020, Ivan Perez.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

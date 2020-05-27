@@ -1,20 +1,23 @@
 Getting Started
 ===============
 
-To get started please clone the repository with its submodules at https://github.com/ivanpmartell/masters-thesis
+To get started please clone the `repository <https://github.com/ivanpmartell/masters-thesis>`_ with its submodules:
 
-    git clone --recurse-submodules https://github.com/ivanpmartell/masters-thesis.git
+.. code-block:: bash
+
+  git clone --recurse-submodules -j8 https://github.com/ivanpmartell/masters-thesis.git
 
 For our scripts to work, we needed sci-kit learn's safe indexing to work with pytorch datasets. Therefore, the following snippet to `sklearn.utils.safe_indexing` should be added:
 
-    elif hasattr(X, "__getitem__"):
-      indices = indices if indices.flags.writeable else indices.copy()
+.. code-block:: python
 
-      return np.array([X.__getitem__(idx)[0] for idx in indices], dtype=np.float32)
+  elif hasattr(X, "__getitem__"):
+    indices = indices if indices.flags.writeable else indices.copy()
+    return np.array([X.__getitem__(idx)[0] for idx in indices], dtype=np.float32)
 
 The project is structured in functionality by its folders:
 
-- The models are contained in folders with capital letters (e.g. `CNNPROM`, `ICNN`, `DPROM`)
+- The `models` are contained in folders with capital letters (e.g. `CNNPROM`, `ICNN`, `DPROM`)
 - The folder `OURS` is a placeholder for your model
 - The folder `docs` is used for this documentation
 - The folder `data` contains all the data necessary for the implemented models, as well as our testing methods
@@ -25,14 +28,26 @@ The logical set of steps to follow include:
 
 1 Train or cross validate a model
 
-  - Training creates a folder models with a subfolder of the trained model's name that might include a csv file of the training data, a json file of the training history and a pt file of the trained model
+  - Training creates a folder models with a subfolder of the trained model's name that might include a csv file of the training data, a json file of the training history and a pt file of the trained model.
+  - Depending on the model, acquisition of additional data might be required.
 
 2 Test the trained model
 
-  - Testing creates the resulting csv file of the tested dataset with the model's predicted scores and true labels
+  - Testing creates the resulting csv file of the tested dataset with the model's predicted scores and true labels.
 
 3 Analyse the tested model's results
 
   - Analyzing creates a results folder with the analysis of the model's predictions from the testing csv output previously created.
 
 The scripts contain arguments (e.g output folder) that can be modified by the user as needed.
+
+Data acquisition
+================
+
+When needed, the data folder provides bash scripts to download necessary data.
+
+- An instance of a downloading bash script is located in `data/human_chrs/download.sh`
+
+In case of blast data, `blast+ executables <https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/>`_ are required for the database creation scripts to function.
+
+-An instance of a blast script is located in `data/blast/promoter_database/create_blast_database.sh`
