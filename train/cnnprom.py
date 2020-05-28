@@ -3,7 +3,7 @@ import sys
 import torch
 import numpy as np
 from tqdm import tqdm
-from skorch import NeuralNetClassifier
+from skorch import NeuralNetBinaryClassifier
 from skorch.callbacks import EarlyStopping, ProgressBar, Checkpoint
 
 sys.path.append(os.path.join(sys.path[0], '..'))
@@ -13,17 +13,17 @@ from CNNPROM.dataset import CNNPROMDataset
 model_folder = "models/cnnprom/"
 if not os.path.exists(model_folder):
     os.makedirs(model_folder)
-# Binary(sigmoid): Use NeuralNetBinaryClassifier, num_classes=1, criterion=BCEWithLogitsLoss, binary=True
-# Multi(softmax): Use NeuralNetClassifier, num_classes=2, criterion=CrossEntropyLoss, binary=False
+# Binary(sigmoid): Use NeuralNetBinaryClassifier (!IMPORT IT), num_classes=1, criterion=BCEWithLogitsLoss, binary=True
+# Multi(softmax): Use NeuralNetClassifier (!IMPORT IT), num_classes=2, criterion=CrossEntropyLoss, binary=False
 
-ds = CNNPROMDataset(file="data/human_TATA.fa", neg_file=None , num_negatives=8256, binary=False, save_df=True)
+ds = CNNPROMDataset(file="data/human_TATA.fa", neg_file=None , num_negatives=8256, binary=True, save_df=True)
 print("Preprocessing: Preparing for stratified sampling")
 y_train = np.array([y for _, y in tqdm(iter(ds))])
 print("Preprocessing: Done")
-net = NeuralNetClassifier(module=CNNPROMModule,
-                          module__num_classes=2,
+net = NeuralNetBinaryClassifier(module=CNNPROMModule,
+                          module__num_classes=1,
                           module__seqs_length=ds.seqs_length,
-                          criterion=torch.nn.CrossEntropyLoss,
+                          criterion=torch.nn.BCEWithLogitsLoss,
                           max_epochs=50,
                           lr=0.001,
                           callbacks=[EarlyStopping(patience=5),

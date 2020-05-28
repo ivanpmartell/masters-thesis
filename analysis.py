@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 # Command line interface
 this_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
 default_out = os.path.join(this_dir, "results_test")
-default_res = os.path.join(this_dir, "results/results.csv")
+default_res = os.path.join(this_dir, "test_results_sigmoid.csv")
 
 parser = argparse.ArgumentParser(description=r"This script will analyse a model's performance returning multiple metrics for binary classification")
 parser.add_argument('--output',
@@ -77,7 +77,9 @@ def plot_confusion_matrix(y_true, y_pred, classes,
                     color="white" if cm[i, j] > thresh else "black")
     fig.tight_layout()
     plt.savefig(os.path.join(args.output, '%s.png' % title))
-    return ax
+    fig.clf()
+    ax.cla()
+    plt.close()
 
 
 def softmax(x, r=1):
@@ -105,21 +107,28 @@ def threshold_flipped(x):
 
 #TODO: Add the distribution curve analysis for optimal threshold
 # For sigmoid now
-def create_histogram(data, colors, n_bins, title, zoom=0):
+def create_histogram(data, colors, n_bins, title, zoom=slice(None), log=False):
     plt.figure()
     n, bins, patches = plt.hist(x=data,bins=n_bins, color=colors,
-                                alpha=0.7, rwidth=0.85)
+                                alpha=0.7, rwidth=0.85, log=log)
     plt.grid(axis='y', alpha=0.75)
     plt.xlabel('Value')
     plt.ylabel('Frequency')
     plt.title(title)
-    extra = '-zoomed_%d' % zoom
+    if(isinstance(zoom, int)):
+        extra = '-zoomed_%d' % zoom
+    else:
+        extra = '-zoomed'
     plt.ylim(top=np.max(n[zoom]))
     plt.savefig(os.path.join(args.output, "%s%s.png" % (title, extra)))
+    plt.cla()
+    plt.clf()
+    plt.close()
 
 print("Reading results")
 df = pd.read_csv(args.results)
-if(len(df.columns) == 5):
+is_softmax = len(df.columns) == 5
+if(is_softmax):
     truths_pos = df[df.label == 1][['prediction_0', 'prediction_1']].to_numpy()
     scores_pos = np.apply_along_axis(softmax, 1, truths_pos, slice(None))
     truths_neg = df[df.label == 0][['prediction_0', 'prediction_1']].to_numpy()
@@ -127,6 +136,10 @@ if(len(df.columns) == 5):
     predictions = df[['prediction_0', 'prediction_1']].to_numpy()
     scores = np.concatenate([truths_pos[:, 1], truths_neg[:, 1]])
 else:
+    truths_pos = df[df.label == 1][['prediction']].to_numpy()
+    scores_pos = np.apply_along_axis(sigmoid, 1, truths_pos)
+    truths_neg = df[df.label == 0][['prediction']].to_numpy()
+    scores_neg = np.apply_along_axis(sigmoid, 1, truths_neg)
     predictions = df['prediction'].to_numpy()
     scores = np.vectorize(sigmoid)(predictions)
 labels = df['label'].to_numpy()
@@ -134,16 +147,26 @@ print("Finished reading results")
 
 print("Creating histograms")
 n_bins=50
-for i in range(2):
-    create_histogram(truths_pos, ['#0504aa','#7cfc00'], n_bins, 'Promoters scores', zoom=i)
-    create_histogram(truths_neg, ['#0504aa','#7cfc00'], n_bins, 'Non-promoters scores', zoom=i)
-    create_histogram((truths_pos[:,0], truths_pos[:,1], truths_neg[:,0], truths_neg[:,1]), ['darkblue','blue','green','lightgreen'], n_bins, 'Scores', zoom=i*2)
-    create_histogram((truths_pos[:,0], truths_pos[:,1], truths_neg[:,0], truths_neg[:,1]), ['darkblue','blue','green','lightgreen'], n_bins, 'Scores', zoom=i*2+1)
-    create_histogram((scores_pos[:,1], scores_neg[:,0]), ['#0504aa','#7cfc00'], n_bins, 'Truth scores promoters', zoom=i)
-    create_histogram((truths_pos[:,1], truths_neg[:,0]), ['#0504aa','#7cfc00'], n_bins, 'Truth logits promoters', zoom=i)
-    create_histogram((scores_pos[:,0], scores_neg[:,1]), ['#0504aa','#7cfc00'], n_bins, 'Truth scores non-promoters', zoom=i)
-    create_histogram((truths_pos[:,0], truths_neg[:,1]), ['#0504aa','#7cfc00'], n_bins, 'Truth logits non-promoters', zoom=i)
-create_histogram(predictions, ['#0504aa','#7cfc00'], n_bins, 'Prediction logits')
+if(is_softmax):
+    for i in range(2):
+        create_histogram(predictions, ['#0504aa','#7cfc00'], n_bins, 'Prediction logits', zoom=i)
+        for j in range(2):
+            create_histogram(truths_pos, ['#0504aa','#7cfc00'], n_bins, 'Promoters %sscores' % ('log ' if j else ''), zoom=i, log=j)
+            create_histogram(truths_neg, ['#0504aa','#7cfc00'], n_bins, 'Non-promoters %sscores' % ('log ' if j else ''), zoom=i, log=j)
+            create_histogram((truths_pos[:,0], truths_pos[:,1], truths_neg[:,0], truths_neg[:,1]), ['darkblue','blue','green','lightgreen'], n_bins, 'Scores%s' % (' log scale' if j else ''), zoom=i*2, log=j)
+            create_histogram((truths_pos[:,0], truths_pos[:,1], truths_neg[:,0], truths_neg[:,1]), ['darkblue','blue','green','lightgreen'], n_bins, 'Scores%s' % (' log scale' if j else ''), zoom=i*2+1, log=j)
+            create_histogram((scores_pos[:,1], scores_neg[:,0]), ['#0504aa','#7cfc00'], n_bins, 'Truth %sscores promoters' % ('log ' if j else ''), zoom=i, log=j)
+            create_histogram((truths_pos[:,1], truths_neg[:,0]), ['#0504aa','#7cfc00'], n_bins, 'Truth %slogits promoters' % ('log ' if j else ''), zoom=i, log=j)
+            create_histogram((scores_pos[:,0], scores_neg[:,1]), ['#0504aa','#7cfc00'], n_bins, 'Truth %sscores non-promoters' % ('log ' if j else ''), zoom=i, log=j)
+            create_histogram((truths_pos[:,0], truths_neg[:,1]), ['#0504aa','#7cfc00'], n_bins, 'Truth %slogits non-promoters' % ('log ' if j else ''), zoom=i, log=j)
+else:
+    create_histogram(predictions, ['#0504aa'], n_bins, 'Prediction logits', zoom=slice(None))
+    for i in range(2):
+        create_histogram(truths_pos, ['#0504aa'], n_bins, 'Promoters %sscores' % ('log ' if i else ''), zoom=slice(None), log=i)
+        create_histogram(truths_neg, ['#7cfc00'], n_bins, 'Non-promoters %sscores' % ('log ' if i else ''), zoom=slice(None), log=i)
+        for j in range(2):
+            create_histogram((scores_pos, scores_neg), ['#0504aa','#7cfc00'], n_bins, 'Truth %sscores promoters' % ('log ' if i else ''), zoom=j, log=i)
+            create_histogram((truths_pos, truths_neg), ['#0504aa','#7cfc00'], n_bins, 'Truth %slogits promoters' % ('log ' if i else ''), zoom=j, log=i)
 print("Histograms done")
 
 print("Calculating metrics")
@@ -153,29 +176,7 @@ precision, recall, pr_thresholds = metrics.precision_recall_curve(labels, scores
 avg_precision = metrics.average_precision_score(labels, scores)
 print("Metrics calculated")
 
-def f_beta_by_threshold(y_true, y_pred_pos, thres_nr=100):
-    thresholds = [i / thres_nr for i in range(1, thres_nr, 1)]
-
-    f_scores = []
-    for thres in thresholds:
-        y_pred_class = y_pred_pos > thres
-        score = metrics.matthews_corrcoef(y_true, y_pred_class)
-        f_scores.append(score)
-
-    return thresholds, f_scores
-
-betas = [0.1, 0.25, 0.5, 1.0, 1.25, 1.5, 2, 5, 10]
-
-plt.figure()
-fig, ax = plt.subplots()
-thresholds, betascores = f_beta_by_threshold(labels, scores)
-ax.plot(thresholds, betascores, label='β=1')
-ax.set_title('mcc by threshold')
-ax.set_xlabel('threshold')
-ax.set_ylabel('mcc')
-ax.legend(loc='right', bbox_to_anchor=(1.3,0.7))
-plt.savefig(os.path.join(args.output, 'mcc_by_thresholds.png'))
-
+print("Creating report")
 def make_report(scores, threshold_func, title):
     thresholded_scores = np.vectorize(threshold_func)(scores)
     report = metrics.classification_report(labels, thresholded_scores, labels=[0, 1], target_names=['non-promoter', 'promoter'], digits=3)
@@ -202,13 +203,45 @@ def make_report(scores, threshold_func, title):
         text_file.write(txt_string)
     
     np.set_printoptions(precision=3)
-    # Plot non-normalized confusion matrix
+    # Plot normalized confusion matrix
     plot_confusion_matrix(labels, thresholded_scores, classes=['non-promoter', 'promoter'],
                           normalize=True, title='Confusion Matrix-%s' % title)
 
-make_report(scores, threshold, 'softmax')
-args.threshold = -2.9
-make_report(predictions[:, 0], threshold_flipped, 'logits')
+if(is_softmax):
+    make_report(scores, threshold, 'softmax')
+else:
+    make_report(scores, threshold, 'sigmoid')
+
+#args.threshold = -2.9 #Change to desired threshold
+#make_report(predictions[:, 0], threshold_flipped, 'logits')
+print("Report created")
+
+print("Creating additional plots")
+def f_beta_by_threshold(y_true, y_pred_pos, thres_nr=100):
+    thresholds = [i / thres_nr for i in range(1, thres_nr, 1)]
+
+    f_scores = []
+    for thres in thresholds:
+        y_pred_class = y_pred_pos > thres
+        score = metrics.matthews_corrcoef(y_true, y_pred_class)
+        f_scores.append(score)
+
+    return thresholds, f_scores
+
+betas = [0.1, 0.25, 0.5, 1.0, 1.25, 1.5, 2, 5, 10]
+
+plt.figure()
+fig, ax = plt.subplots()
+thresholds, betascores = f_beta_by_threshold(labels, scores)
+ax.plot(thresholds, betascores, label='β=1')
+ax.set_title('mcc by threshold')
+ax.set_xlabel('threshold')
+ax.set_ylabel('mcc')
+ax.legend(loc='right', bbox_to_anchor=(1.3,0.7))
+plt.savefig(os.path.join(args.output, 'mcc_by_thresholds.png'))
+fig.clf()
+ax.cla()
+plt.close()
 
 # PLOT AUC
 plt.figure()
@@ -223,6 +256,9 @@ plt.ylabel('True Positive Rate')
 plt.title('Area under the ROC curve')
 plt.legend(loc="lower right")
 plt.savefig(os.path.join(args.output, 'area_under_curve.png'))
+plt.cla()
+plt.clf()
+plt.close()
 
 # PLOT PRCURVE
 plt.figure()
@@ -236,6 +272,9 @@ plt.ylabel('Precision')
 plt.title('Precision-Recall curve')
 plt.legend(loc="upper right")
 plt.savefig(os.path.join(args.output, 'precision_recall_curve.png'))
+plt.cla()
+plt.clf()
+plt.close()
 
 # PLOT PR VS THRESHOLDS
 plt.figure()
@@ -246,3 +285,8 @@ plt.ylim([-0.05, 1.05])
 plt.xlabel('Threshold')
 plt.legend(loc='upper right')
 plt.savefig(os.path.join(args.output, 'precision_recall_vs_thresholds.png'))
+plt.cla()
+plt.clf()
+plt.close()
+print("Additional plots created")
+print("Analysis done")

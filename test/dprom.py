@@ -54,8 +54,8 @@ args = parser.parse_args()
 
 model_folder = os.path.dirname(args.model)
 cp = Checkpoint(dirname=model_folder, f_params=os.path.basename(args.model))
-# Binary(sigmoid): Use NeuralNetBinaryClassifier, num_classes=1, criterion=BCEWithLogitsLoss, binary=True
-# Multi(softmax): Use NeuralNetClassifier, num_classes=2, criterion=CrossEntropyLoss, binary=False
+# Binary(sigmoid): Use NeuralNetBinaryClassifier (!IMPORT IT), num_classes=1, binary=True
+# Multi(softmax): Use NeuralNetClassifier (!IMPORT IT), num_classes=2, binary=False
 
 neg_f = None
 if(args.neg_file != ''):

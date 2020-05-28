@@ -5,7 +5,7 @@ import argparse
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
-from skorch import NeuralNetClassifier
+from skorch import NeuralNetBinaryClassifier
 from skorch.callbacks import Checkpoint
 
 sys.path.append(os.path.join(sys.path[0], '..'))
@@ -22,7 +22,7 @@ parser = argparse.ArgumentParser(description=r"This script will test a model's p
 parser.add_argument('-binary', 
         type=bool, 
         help='For model: a 1 neuron sigmoid output if set, otherwise a 2 neuron softmax output',
-        default=False)
+        default=True)
 parser.add_argument('--model',
         type = str,
         help = f'Path for desired model file. Default: {default_mod}. '
@@ -71,8 +71,8 @@ args = parser.parse_args()
 
 model_folder = os.path.dirname(args.model)
 cp = Checkpoint(dirname=model_folder, f_params=os.path.basename(args.model))
-# Binary(sigmoid): Use NeuralNetBinaryClassifier, num_classes=1, criterion=BCEWithLogitsLoss, binary=True
-# Multi(softmax): Use NeuralNetClassifier, num_classes=2, criterion=CrossEntropyLoss, binary=False
+# Binary(sigmoid): Use classifier=NeuralNetBinaryClassifier (!IMPORT IT), num_classes=1, binary=True
+# Multi(softmax): Use classifier=NeuralNetClassifier (!IMPORT IT), num_classes=2, binary=False
 
 ds = OURDataset(annotations_file=args.annotations,
                 chromosome_name=args.chromosome,
@@ -94,18 +94,20 @@ elif(module_name == 'cnnprom'):
 
 def tqdm_iterator(dataset, **kwargs):
     return tqdm(torch.utils.data.DataLoader(dataset, **kwargs))
+
+classifier = NeuralNetBinaryClassifier
 if(module_name == 'icnn'):
     from ICNN.module import ICNNModule
-    net = NeuralNetClassifier(module=ICNNModule,
-                              module__num_classes=2,
+    net = classifier(module=ICNNModule,
+                              module__num_classes=1,
                               module__elements_length=ds.elements_length,
                               module__non_elements_length=ds.non_elements_length,
                               batch_size=256,
                               device='cuda' if torch.cuda.is_available() else 'cpu',
                               iterator_valid=tqdm_iterator)
 else:
-    net = NeuralNetClassifier(module=module,
-                              module__num_classes=2,
+    net = classifier(module=module,
+                              module__num_classes=1,
                               module__seqs_length=ds.seqs_length,
                               batch_size=256,
                               device='cuda' if torch.cuda.is_available() else 'cpu',

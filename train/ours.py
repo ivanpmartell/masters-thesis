@@ -13,8 +13,8 @@ from OURS.dataset_parallel import OURDataset
 model_folder = "models/ours/"
 if not os.path.exists(model_folder):
     os.makedirs(model_folder)
-# Binary(sigmoid): Use NeuralNetBinaryClassifier, num_classes=1, criterion=BCEWithLogitsLoss, binary=True
-# Multi(softmax): Use NeuralNetClassifier, num_classes=2, criterion=CrossEntropyLoss, binary=False
+# Binary(sigmoid): Use NeuralNetBinaryClassifier (!IMPORT IT), num_classes=1, criterion=BCEWithLogitsLoss, binary=True
+# Multi(softmax): Use NeuralNetClassifier (!IMPORT IT), num_classes=2, criterion=CrossEntropyLoss, binary=False
 
 ds = OURDataset(annotations_file="data/human_complete.sga",
                 chromosome_name="1",

@@ -13,8 +13,8 @@ from DPROM.dataset import DPROMDataset
 model_folder = "models/dprom/"
 if not os.path.exists(model_folder):
     os.makedirs(model_folder)
-# Binary(sigmoid): Use NeuralNetBinaryClassifier, num_classes=1, criterion=BCEWithLogitsLoss, binary=True
-# Multi(softmax): Use NeuralNetClassifier, num_classes=2, criterion=CrossEntropyLoss, binary=False
+# Binary(sigmoid): Use NeuralNetBinaryClassifier (!IMPORT IT), num_classes=1, criterion=BCEWithLogitsLoss, binary=True
+# Multi(softmax): Use NeuralNetClassifier (!IMPORT IT), num_classes=2, criterion=CrossEntropyLoss, binary=False
 
 ds = DPROMDataset(file="data/human_complete.fa", neg_file=None, binary=False, save_df=True)
 print("Preprocessing: Preparing for stratified sampling")
