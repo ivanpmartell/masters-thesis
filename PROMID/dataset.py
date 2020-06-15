@@ -1,8 +1,9 @@
 import pathlib
 import numpy as np
-from Bio import SeqIO
+from Bio import SeqIO, File
 import pandas as pd
 import random
+import matplotlib.pyplot as pp
 from skorch.dataset import Dataset
 from sklearn.model_selection import train_test_split
 from scipy.special import softmax
@@ -19,8 +20,10 @@ class PROMIDSlidingDataset(Dataset):
     seqs_length: int
     promoter_tss_loc: int
     num_records: int
+    index_list: list
     batch_size: int
     y_type: np.dtype = np.int64
+    indexed_file: File._IndexedSeqFileDict
     dataframe: pd.DataFrame
     current_data: pd.DataFrame
     dna_dict: dict = {'A': 0, 'T': 1, 'G': 2, 'C': 3}
@@ -29,39 +32,22 @@ class PROMIDSlidingDataset(Dataset):
     def __init__(self, file, promoter_tss_loc, binary):
         self.seqs_file = file
         self.promoter_tss_loc = promoter_tss_loc
-        with open(file, 'rU') as fasta_file, multiprocessing.Pool() as pool:
-            records = pool.map(
-                self.count_records,
-                (id for id, _ in enumerate(SeqIO.parse(fasta_file, 'fasta'))),
-                chunksize=2000,
-            )
-        self.num_records = len(records)
+        #TODO: Change to parallel as in OURS
+        self.indexed_file = SeqIO.index(file, 'fasta')
+        self.index_list = list(self.indexed_file)
+        self.num_records = len(self.indexed_file)
         if(binary):
             self.y_type = np.float32
-
-    def count_records(self, idx):
-        return 1
     
-    def get_sliding_sequences(self, record):
-        if record[0] != record[2]:
-            return
-        sequences = []
-        step = len(record[1].seq) // self.batch_size
-        start = random.randint(0-promoter_loc[0],0-promoter_loc[0]+step)
-        end = len(record[1].seq)-promoter_loc[1]
-        r_name = record[1].description.split(' ')[1]
-        r_seq = record[1].seq._data
-        for tss_loc in range(start, end, step):
-            sequence = r_seq[tss_loc+promoter_loc[0]:tss_loc+promoter_loc[1]]
-            if 'N' in sequence:
-                #print("Ignoring location %d: Sequence contained unknown base" % tss_loc)
-                continue
-            if tss_loc < self.promoter_tss_loc-margin_of_error or tss_loc > self.promoter_tss_loc+margin_of_error:
-                label = self.lbl_dict['Non-Promoter']
-            else:
-                label = self.lbl_dict['Promoter']
-            sequences.append([r_name, sequence, label])
-        return sequences
+    def get_sliding_sequences(self, name, seq, tss_loc):
+        sequence = seq[tss_loc+promoter_loc[0]:tss_loc+promoter_loc[1]]
+        if 'N' in sequence:
+            return []
+        if tss_loc < self.promoter_tss_loc-margin_of_error or tss_loc > self.promoter_tss_loc+margin_of_error:
+            label = self.lbl_dict['Non-Promoter']
+        else:
+            label = self.lbl_dict['Promoter']
+        return [name, sequence, label]
 
     def one_hot_encoder(self, seq):
         one_hot = np.zeros((len(self.dna_dict), len(seq)), dtype=np.float32)
@@ -69,14 +55,30 @@ class PROMIDSlidingDataset(Dataset):
             one_hot[self.dna_dict[token], idx] = 1
         return one_hot
 
-    def set_current_data(self, target_idx):
-        with open(self.seqs_file, 'rU') as fasta_file, multiprocessing.Pool() as pool:
-            seqs = pool.map(
-                self.get_sliding_sequences,
-                ([id, record, target_idx] for id, record in enumerate(SeqIO.parse(fasta_file, 'fasta'))),
-                chunksize=self.num_records//8,
-            )
-        self.current_data = pd.DataFrame(seqs[target_idx], columns=['name', 'sequence', 'label'])
+    def set_current_data(self, target_idx, rand=True):
+        record = self.indexed_file[self.index_list[target_idx]]
+        locations = []
+        if rand is True:
+            for _ in range(self.batch_size):
+                locations.append(self.get_rand_nonpromoter_tss_loc(len(record.seq), self.promoter_tss_loc))
+        else:
+            start = 0-promoter_loc[0]
+            end = len(record.seq)-promoter_loc[1]
+            locations = list(range(start, end))
+        r_name = record.description.split(' ')[1]
+        r_seq = record.seq._data
+        records = []
+        for tss_loc in locations:
+            records.append(self.get_sliding_sequences(r_name, r_seq, tss_loc))
+        self.current_data = pd.DataFrame(records, columns=['name', 'sequence', 'label']).dropna()
+
+    def get_rand_nonpromoter_tss_loc(self, seq_len, tss_loc):
+        us_or_ds = random.randint(0, 1)
+        if(us_or_ds):
+            nonpromoter_tss_loc = random.randrange(0-promoter_loc[0], tss_loc-margin_of_error)
+        else:
+            nonpromoter_tss_loc = random.randrange(tss_loc+margin_of_error+1, seq_len-promoter_loc[1])
+        return nonpromoter_tss_loc
     
     def get_y_true(self):
         return self.current_data.label.values
@@ -168,11 +170,7 @@ class PROMIDDataset(Dataset):
                 tries = 0
                 while(condition):
                     tries += 1
-                    us_or_ds = random.randint(0, 1)
-                    if(us_or_ds):
-                        nonpromoter_tss_loc = random.randrange(0-promoter_loc[0], tss_loc-margin_of_error)
-                    else:
-                        nonpromoter_tss_loc = random.randrange(tss_loc+margin_of_error+1, len(r_seq)-promoter_loc[1])
+                    nonpromoter_tss_loc = self.get_rand_nonpromoter_tss_loc(len(r_seq), tss_loc)
                     
                     nonpromoter = r_seq[nonpromoter_tss_loc+promoter_loc[0]:nonpromoter_tss_loc+promoter_loc[1]]
                     condition = 'N' in nonpromoter
@@ -181,6 +179,14 @@ class PROMIDDataset(Dataset):
                 neg_seqs.append(nonpromoter)
                 
         return seqs, neg_seqs
+    
+    def get_rand_nonpromoter_tss_loc(self, seq_len, tss_loc):
+        us_or_ds = random.randint(0, 1)
+        if(us_or_ds):
+            nonpromoter_tss_loc = random.randrange(0-promoter_loc[0], tss_loc-margin_of_error)
+        else:
+            nonpromoter_tss_loc = random.randrange(tss_loc+margin_of_error+1, seq_len-promoter_loc[1])
+        return nonpromoter_tss_loc
 
     def load_dataframe(self, file):
         self.dataframe = pd.read_csv(file)
@@ -196,16 +202,23 @@ class PROMIDDataset(Dataset):
     
     def append_false_positive_seqs(self, net):
         appended_num_seqs = 0
+        random_plot = random.choice(self.train_indices)
         self.sliding_dataset.batch_size = net.batch_size
         for i in tqdm(self.train_indices):
-            self.sliding_dataset.set_current_data(i)
+            if random_plot == i:
+                rand = False
+            else:
+                rand = True
+            self.sliding_dataset.set_current_data(i, rand=rand)
             y_pred = net.predict_proba(self.sliding_dataset)
             y_pred = softmax(y_pred, axis=1)
             y_true = self.sliding_dataset.get_y_true()
             nonpromoter_filter = (y_true*-1+1).astype(bool)
             predictions = y_pred[nonpromoter_filter]
+            if random_plot == i:
+                self.plot_predictions(predictions)
             filtered_sequences = self.sliding_dataset.current_data[nonpromoter_filter]
-            top_false_positives_filter = predictions[:,self.lbl_dict['Promoter']]>0.90
+            top_false_positives_filter = predictions[:,self.lbl_dict['Promoter']]>0.95
             false_positives = filtered_sequences[top_false_positives_filter]
             #filtered_predictions = predictions[top_false_positives_filter]
             appended_num_seqs += len(false_positives)
@@ -213,6 +226,10 @@ class PROMIDDataset(Dataset):
             fp_df['label'] = self.lbl_dict['Non-Promoter']
             self.dataframe = self.dataframe.append(fp_df, ignore_index=True)
         print("\nAppended %d sequences to the negative dataset" % appended_num_seqs)
+
+    def plot_predictions(self, predictions):
+        pp.plot(predictions[:,self.lbl_dict['Promoter']])
+        pp.show()
 
     def one_hot_encoder(self, seq):
         one_hot = np.zeros((len(self.dna_dict), len(seq)), dtype=np.float32)
