@@ -14,8 +14,9 @@ from PROMID.dataset import PROMIDDataset
 from PROMID.callbacks import AppendToDataset
 
 model_folder = "models/promid/"
-if not os.path.exists(model_folder):
-    os.makedirs(model_folder)
+images_folder= "models/promid/images"
+if not os.path.exists(images_folder):
+    os.makedirs(images_folder)
 # Binary(sigmoid): Use NeuralNetBinaryClassifier (!IMPORT IT), num_classes=1, criterion=BCEWithLogitsLoss, binary=True
 # Multi(softmax): Use NeuralNetClassifier (!IMPORT IT), num_classes=2, criterion=CrossEntropyLoss, binary=False
 
@@ -26,16 +27,16 @@ net = NeuralNetClassifier(module=PROMIDModule,
                           module__num_classes=2,
                           module__seqs_length=ds.seqs_length,
                           criterion=torch.nn.CrossEntropyLoss,
-                          max_epochs=5000,
+                          max_epochs=50000,
                           lr=0.001,
                           callbacks=[AppendToDataset(),
                                      ProgressBar(),
                                      Checkpoint(monitor=None,
                                                 dirname=model_folder,
                                                 f_params='model.pt')],
-                          batch_size=64,
+                          batch_size=32,
                           optimizer=torch.optim.Adam,
-                          optimizer__weight_decay=1e-5,
+                          optimizer__weight_decay=1.5e-3,
                           device='cuda' if torch.cuda.is_available() else 'cpu',
                           train_split=predefined_split(ds.val_dataset))
 

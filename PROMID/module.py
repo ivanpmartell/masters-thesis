@@ -2,7 +2,7 @@ import torch
 from torch import nn
 
 class PROMIDModule(nn.Module):
-    def __init__(self, num_classes, seqs_length=300, num_channels=20, conv_kernel=15, pool_kernel=300):
+    def __init__(self, num_classes, seqs_length=300, num_channels=50, conv_kernel=15, pool_kernel=300):
         super(PROMIDModule, self).__init__()
         conv_shape = seqs_length - conv_kernel + 1
         pool_kernel = conv_shape

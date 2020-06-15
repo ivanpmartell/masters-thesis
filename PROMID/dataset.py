@@ -1,9 +1,10 @@
+import os
 import pathlib
 import numpy as np
 from Bio import SeqIO, File
 import pandas as pd
 import random
-import matplotlib.pyplot as pp
+import matplotlib.pyplot as plt
 from skorch.dataset import Dataset
 from sklearn.model_selection import train_test_split
 from scipy.special import softmax
@@ -216,9 +217,9 @@ class PROMIDDataset(Dataset):
             nonpromoter_filter = (y_true*-1+1).astype(bool)
             predictions = y_pred[nonpromoter_filter]
             if random_plot == i:
-                self.plot_predictions(predictions)
+                self.plot_predictions(predictions, i, net.history[-1]['epoch'])
             filtered_sequences = self.sliding_dataset.current_data[nonpromoter_filter]
-            top_false_positives_filter = predictions[:,self.lbl_dict['Promoter']]>0.95
+            top_false_positives_filter = predictions[:,self.lbl_dict['Promoter']]>0.99
             false_positives = filtered_sequences[top_false_positives_filter]
             #filtered_predictions = predictions[top_false_positives_filter]
             appended_num_seqs += len(false_positives)
@@ -227,9 +228,12 @@ class PROMIDDataset(Dataset):
             self.dataframe = self.dataframe.append(fp_df, ignore_index=True)
         print("\nAppended %d sequences to the negative dataset" % appended_num_seqs)
 
-    def plot_predictions(self, predictions):
-        pp.plot(predictions[:,self.lbl_dict['Promoter']])
-        pp.show()
+    def plot_predictions(self, predictions, idx, epoch):
+        plt.plot(predictions[:,self.lbl_dict['Promoter']])
+        plt.savefig(os.path.join('models/promid/images', 'Epoch-%d_id-%d.png' % (epoch, idx)))
+        plt.cla()
+        plt.clf()
+        plt.close()
 
     def one_hot_encoder(self, seq):
         one_hot = np.zeros((len(self.dna_dict), len(seq)), dtype=np.float32)
