@@ -21,14 +21,16 @@ if not os.path.exists(images_folder):
 # Multi(softmax): Use NeuralNetClassifier (!IMPORT IT), num_classes=2, criterion=CrossEntropyLoss, binary=False
 
 print("Preprocessing: Started")
-ds = PROMIDDataset(file="data/human_TATA_5000.fa", tss_loc=5000, binary=False, save_df=False)
+ds = PROMIDDataset(file="data/human_nonTATA_5000.fa", tss_loc=5000, binary=False, save_df=False)
 print("Preprocessing: Done")
+weight = torch.FloatTensor((0.5,0.5))
 net = NeuralNetClassifier(module=PROMIDModule,
                           module__num_classes=2,
                           module__seqs_length=ds.seqs_length,
                           criterion=torch.nn.CrossEntropyLoss,
-                          max_epochs=50000,
-                          lr=0.001,
+                          criterion__weight=weight,
+                          max_epochs=5000,
+                          lr=0.0001,
                           callbacks=[AppendToDataset(),
                                      ProgressBar(),
                                      Checkpoint(monitor=None,

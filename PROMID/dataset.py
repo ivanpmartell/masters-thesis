@@ -201,7 +201,7 @@ class PROMIDDataset(Dataset):
         else:
             df.to_csv(file, index=False)
     
-    def append_false_positive_seqs(self, net):
+    def append_false_positive_seqs(self, net, counter):
         appended_num_seqs = 0
         random_plot = random.choice(self.train_indices)
         self.sliding_dataset.batch_size = net.batch_size
@@ -218,8 +218,9 @@ class PROMIDDataset(Dataset):
             predictions = y_pred[nonpromoter_filter]
             if random_plot == i:
                 self.plot_predictions(predictions, i, net.history[-1]['epoch'])
+                continue
             filtered_sequences = self.sliding_dataset.current_data[nonpromoter_filter]
-            top_false_positives_filter = predictions[:,self.lbl_dict['Promoter']]>0.99
+            top_false_positives_filter = predictions[:,self.lbl_dict['Promoter']]>0.95
             false_positives = filtered_sequences[top_false_positives_filter]
             #filtered_predictions = predictions[top_false_positives_filter]
             appended_num_seqs += len(false_positives)
@@ -227,9 +228,17 @@ class PROMIDDataset(Dataset):
             fp_df['label'] = self.lbl_dict['Non-Promoter']
             self.dataframe = self.dataframe.append(fp_df, ignore_index=True)
         print("\nAppended %d sequences to the negative dataset" % appended_num_seqs)
+    
+    def get_class_amounts(self):
+        promoter_count = len(self.dataframe[self.dataframe['label'] == self.lbl_dict['Promoter']])
+        nonpromoter_count = len(self.dataframe[self.dataframe['label'] == self.lbl_dict['Non-Promoter']])
+        total_count = len(self.dataframe)
+        if(promoter_count + nonpromoter_count != total_count):
+            raise Exception("Wrong count")
+        return promoter_count, nonpromoter_count
 
     def plot_predictions(self, predictions, idx, epoch):
-        plt.plot(predictions[:,self.lbl_dict['Promoter']])
+        plt.plot(predictions[:,self.lbl_dict['Promoter']], linewidth=.1)
         plt.savefig(os.path.join('models/promid/images', 'Epoch-%d_id-%d.png' % (epoch, idx)))
         plt.cla()
         plt.clf()
