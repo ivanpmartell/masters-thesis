@@ -201,7 +201,7 @@ class PROMIDDataset(Dataset):
         else:
             df.to_csv(file, index=False)
     
-    def append_false_positive_seqs(self, net, counter):
+    def append_false_positive_seqs(self, net):
         appended_num_seqs = 0
         random_plot = random.choice(self.train_indices)
         self.sliding_dataset.batch_size = net.batch_size

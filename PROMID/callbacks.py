@@ -6,7 +6,7 @@ class AppendToDataset(Callback):
         if net.history[-1]['epoch'] % 10 == 0:
             net.module_.eval()
             with torch.no_grad():
-                dataset_train.append_false_positive_seqs(net, self.counter)
+                dataset_train.append_false_positive_seqs(net)
             prom, nonprom = dataset_train.get_class_amounts()
             total = prom + nonprom
             weight = torch.FloatTensor((nonprom/total, prom/total))
