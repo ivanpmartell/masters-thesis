@@ -60,5 +60,8 @@ cross_validate(net, X, y, scoring=scorer, cv=10, verbose=1)
 print("Cross Validation: Done")
 results = scorer.get_results()
 
-for metric in results['confusion matrix'][0].keys():
-  print("%s: %s" % (metric, average(results['confusion matrix'][0][metric])))
+with open(os.path.join(model_folder, "cv_results.txt"), 'w') as f:
+  for metric in results['confusion matrix'][0].keys():
+    f.write("%s: %s\n" % (metric, average(results['confusion matrix'][0][metric])))
+
+print(results)
