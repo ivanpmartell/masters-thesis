@@ -48,19 +48,17 @@ def confusion_matrix_scorer(y, y_pred):
     tp = cm[1, 1]
     fn = cm[1, 0]
     fp = cm[0, 1]
+    mcc = matthews_corrcoef(y, y_pred)
     return {'tn': tn , 'fp': fp,
             'fn': fn, 'tp': tp,
-            'sensitivity': tp/(tp+fn), 'specificity': tn/(tn+fp)}
+            'sensitivity': tp/(tp+fn), 'specificity': tn/(tn+fp),
+            'precision': tp/(tp+fp), 'mcc': mcc }
 scorer = MultiScorer({
-  'accuracy': (accuracy_score, {}),
-  'precision': (precision_score, {}),
-  'recall': (recall_score, {}),
-  'mcc': (matthews_corrcoef, {}),
   'confusion matrix': (confusion_matrix_scorer, {})
 })
 cross_validate(net, X, y, scoring=scorer, cv=10, verbose=1)
 print("Cross Validation: Done")
 results = scorer.get_results()
 
-for metric in results.keys():
-  print("%s: %s" % (metric, results[metric]))
+for metric in results['confusion matrix'].keys():
+  print("%s: %s" % (metric, average(results[metric])))

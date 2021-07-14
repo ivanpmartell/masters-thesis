@@ -7,7 +7,7 @@ from tqdm import tqdm
 from skorch import NeuralNetClassifier
 from skorch.dataset import CVSplit
 from skorch.callbacks import EarlyStopping, ProgressBar, Checkpoint
-from sklearn.metrics import matthews_corrcoef, accuracy_score, precision_score, recall_score
+from sklearn.metrics import matthews_corrcoef, accuracy_score, precision_score, recall_score, confusion_matrix
 from sklearn.model_selection import cross_validate
 from multiscorer.multiscorer import MultiScorer
 
@@ -33,29 +33,32 @@ net = NeuralNetClassifier(module=DPROMModule,
                           criterion=torch.nn.CrossEntropyLoss,
                           max_epochs=50,
                           lr=0.001,
-                          callbacks=[EarlyStopping(patience=5),
+                          callbacks=[EarlyStopping(patience=10),
                                      ProgressBar()],
                           batch_size=32,
                           optimizer=torch.optim.Adam,
-                          train_split=CVSplit(cv=0.2,stratified=True),
+                          train_split=CVSplit(cv=0.1,stratified=True),
                           device='cuda' if torch.cuda.is_available() else 'cpu')
 
 print("Cross Validation: Started")
 #scoring metrics can be modified. Predefined metrics: https://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter
 def confusion_matrix_scorer(y, y_pred):
     cm = confusion_matrix(y, y_pred)
-    return {'tn': cm[0, 0], 'fp': cm[0, 1],
-            'fn': cm[1, 0], 'tp': cm[1, 1]}
+    tn = cm[0, 0]
+    tp = cm[1, 1]
+    fn = cm[1, 0]
+    fp = cm[0, 1]
+    mcc = matthews_corrcoef(y, y_pred)
+    return {'tn': tn , 'fp': fp,
+            'fn': fn, 'tp': tp,
+            'sensitivity': tp/(tp+fn), 'specificity': tn/(tn+fp),
+            'precision': tp/(tp+fp), 'mcc': mcc }
 scorer = MultiScorer({
-  'accuracy': (accuracy_score, {}),
-  'precision': (precision_score, {}),
-  'recall': (recall_score, {}),
-  'mcc': (matthews_corrcoef, {}),
   'confusion matrix': (confusion_matrix_scorer, {})
 })
-cross_validate(net, X, y, scoring=scorer, cv=2, verbose=1)
+cross_validate(net, X, y, scoring=scorer, cv=10, verbose=1)
 print("Cross Validation: Done")
 results = scorer.get_results()
 
-for metric in results.keys():
-  print("%s: %s" % (metric, results[metric]))
+for metric in results['confusion matrix'].keys():
+  print("%s: %s" % (metric, average(results[metric])))

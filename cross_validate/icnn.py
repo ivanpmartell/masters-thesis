@@ -7,7 +7,7 @@ from tqdm import tqdm
 from skorch import NeuralNetClassifier
 from skorch.dataset import CVSplit
 from skorch.callbacks import EarlyStopping, ProgressBar, Checkpoint
-from sklearn.metrics import matthews_corrcoef, accuracy_score, precision_score, recall_score
+from sklearn.metrics import matthews_corrcoef, accuracy_score, precision_score, recall_score, confusion_matrix
 from sklearn.model_selection import cross_validate
 from multiscorer.multiscorer import MultiScorer
 
@@ -23,9 +23,9 @@ if not os.path.exists(model_folder):
 
 ds = ICNNDataset(file="data/human_representative.fa", neg_folder="data/bdgp", num_positives=7156, binary=False, save_df=True)
 print("Preprocessing: Preparing for stratified sampling")
-data_list = [(x, y) for x, y in tqdm(iter(ds))]
-X = np.array([col[0] for col in data_list], dtype=np.float32)
-y = np.array([col[1] for col in data_list], dtype=np.int64)
+data_list = np.array([(x, y) for x, y in tqdm(iter(ds))])
+X = data_list[:,0]
+y = data_list[:,1]
 print("Preprocessing: Done")
 net = NeuralNetClassifier(module=ICNNModule,
                           module__num_classes=2,
@@ -34,7 +34,7 @@ net = NeuralNetClassifier(module=ICNNModule,
                           criterion=torch.nn.CrossEntropyLoss,
                           max_epochs=50,
                           lr=0.001,
-                          callbacks=[EarlyStopping(patience=5),
+                          callbacks=[EarlyStopping(patience=10),
                                      ProgressBar()],
                           batch_size=8,
                           optimizer=torch.optim.SGD,
@@ -44,15 +44,23 @@ net = NeuralNetClassifier(module=ICNNModule,
 
 print("Cross Validation: Started")
 #scoring metrics can be modified. Predefined metrics: https://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter
+def confusion_matrix_scorer(y, y_pred):
+    cm = confusion_matrix(y, y_pred)
+    tn = cm[0, 0]
+    tp = cm[1, 1]
+    fn = cm[1, 0]
+    fp = cm[0, 1]
+    mcc = matthews_corrcoef(y, y_pred)
+    return {'tn': tn , 'fp': fp,
+            'fn': fn, 'tp': tp,
+            'sensitivity': tp/(tp+fn), 'specificity': tn/(tn+fp),
+            'precision': tp/(tp+fp), 'mcc': mcc }
 scorer = MultiScorer({
-  'accuracy': (accuracy_score, {}),
-  'precision': (precision_score, {}),
-  'recall': (recall_score, {}),
-  'mcc': (matthews_corrcoef, {})
+  'confusion matrix': (confusion_matrix_scorer, {})
 })
-cross_validate(net, ds, y_train, scoring=scorer, cv=2, verbose=1)
+cross_validate(net, X, y, scoring=scorer, cv=10, verbose=1)
 print("Cross Validation: Done")
 results = scorer.get_results()
 
-for metric in results.keys():
-  print("%s: %.3f" % (metric, average(results[metric])))
+for metric in results['confusion matrix'].keys():
+  print("%s: %s" % (metric, average(results[metric])))
