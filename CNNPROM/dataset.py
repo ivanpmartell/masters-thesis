@@ -75,7 +75,7 @@ class CNNPROMDataset(Dataset):
                     for _, row in mariadb_chrom_df.iterrows():
                         try:
                             if row['strand'] == '-':
-                                exon1_end = int(row['exonEnds'].split(',')[-2]) - 1
+                                exon1_end = int(row['exonEnds'].decode("utf-8").split(',')[-2]) - 1
                                 gene_end = row['txStart'] + self.seqs_length
                                 seq = 'N'
                                 while 'N' in seq:
@@ -84,7 +84,7 @@ class CNNPROMDataset(Dataset):
                                     seq = seq.upper()
                                 neg_seq = self.create_antisense_strand(seq)
                             else:
-                                exon1_end = int(row['exonEnds'].split(',')[0]) + 1
+                                exon1_end = int(row['exonEnds'].decode("utf-8").split(',')[0]) + 1
                                 gene_end = row['txEnd'] - self.seqs_length
                                 seq = 'N'
                                 while 'N' in seq:
