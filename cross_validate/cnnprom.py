@@ -21,10 +21,11 @@ if not os.path.exists(model_folder):
 # Binary(sigmoid): Use NeuralNetBinaryClassifier, num_classes=1, criterion=BCEWithLogitsLoss, binary=True
 # Multi(softmax): Use NeuralNetClassifier, num_classes=2, criterion=CrossEntropyLoss, binary=False
 
-ds = CNNPROMDataset(file="models/cnnprom/dataframe.csv", neg_file=None , num_negatives=8256, binary=False, save_df=False)
+ds = CNNPROMDataset(file="data/human_TATA.fa", neg_file=None , num_negatives=8256, binary=False, save_df=False)
 print("Preprocessing: Preparing for stratified sampling")
-y_train = np.array([y for _, y in tqdm(iter(ds))])
-X = np.array([x for x, _ in tqdm(iter(ds))])
+data_list = np.array([(x, y) for x, y in tqdm(iter(ds))])
+X = data_list[:,0]
+y = data_list[:,1]
 print("Preprocessing: Done")
 net = NeuralNetClassifier(module=CNNPROMModule,
                           module__num_classes=2,
@@ -36,7 +37,8 @@ net = NeuralNetClassifier(module=CNNPROMModule,
                                      ProgressBar()],
                           batch_size=16,
                           optimizer=torch.optim.Adam,
-                          train_split=CVSplit(cv=0.2,stratified=True))
+                          train_split=CVSplit(cv=0.2,stratified=True),
+                          device='cuda' if torch.cuda.is_available() else 'cpu')
 
 print("Cross Validation: Started")
 #scoring metrics can be modified. Predefined metrics: https://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter
@@ -51,7 +53,7 @@ scorer = MultiScorer({
   'mcc': (matthews_corrcoef, {}),
   'confusion matrix': (confusion_matrix_scorer, {})
 })
-cross_validate(net, X, y_train, scoring=scorer, cv=2, verbose=1)
+cross_validate(net, X, y, scoring=scorer, cv=2, verbose=1)
 print("Cross Validation: Done")
 results = scorer.get_results()
 

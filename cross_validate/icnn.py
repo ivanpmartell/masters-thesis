@@ -23,7 +23,9 @@ if not os.path.exists(model_folder):
 
 ds = ICNNDataset(file="data/human_representative.fa", neg_folder="data/bdgp", num_positives=7156, binary=False, save_df=True)
 print("Preprocessing: Preparing for stratified sampling")
-y_train = np.array([y for _, y in tqdm(iter(ds))])
+data_list = np.array([(x, y) for x, y in tqdm(iter(ds))])
+X = data_list[:,0]
+y = data_list[:,1]
 print("Preprocessing: Done")
 net = NeuralNetClassifier(module=ICNNModule,
                           module__num_classes=2,
@@ -33,13 +35,11 @@ net = NeuralNetClassifier(module=ICNNModule,
                           max_epochs=50,
                           lr=0.001,
                           callbacks=[EarlyStopping(patience=5),
-                                     ProgressBar(),
-                                     Checkpoint(dirname=model_folder,
-                                                f_params='model.pt')],
+                                     ProgressBar()],
                           batch_size=8,
                           optimizer=torch.optim.SGD,
                           optimizer__momentum=0.90,
-                          train_split=CVSplit(cv=0.1,stratified=True),
+                          train_split=CVSplit(cv=0.2,stratified=True),
                           device='cuda' if torch.cuda.is_available() else 'cpu')
 
 print("Cross Validation: Started")

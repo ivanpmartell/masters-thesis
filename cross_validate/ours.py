@@ -40,12 +40,10 @@ net = NeuralNetClassifier(module=DPROMModule,
                           max_epochs=50,
                           lr=0.001,
                           callbacks=[EarlyStopping(patience=5),
-                                     ProgressBar(),
-                                     Checkpoint(dirname=model_folder,
-                                                f_params='model.pt')],
+                                     ProgressBar()],
                           batch_size=32,
                           optimizer=torch.optim.Adam,
-                          train_split=CVSplit(cv=0.1,stratified=True),
+                          train_split=CVSplit(cv=0.2,stratified=True),
                           device='cuda' if torch.cuda.is_available() else 'cpu')
 
 print("Cross Validation: Started")
