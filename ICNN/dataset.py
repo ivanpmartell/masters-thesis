@@ -63,7 +63,8 @@ class ICNNDataset(Dataset):
     def get_files_in_folder(folder):
         file_list = []
         for (dirpath, _, filenames) in os.walk(folder):
-            file_list.extend([os.path.join(dirpath, file) for file in filenames])
+            file_list.extend([os.path.join(dirpath, file) for file in filenames if not "readme" in file])
+        print(file_list)
         return file_list
 
     def one_hot_encoder(self, seq):
