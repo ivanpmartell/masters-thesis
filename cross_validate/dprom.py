@@ -61,4 +61,4 @@ print("Cross Validation: Done")
 results = scorer.get_results()
 
 for metric in results['confusion matrix'].keys():
-  print("%s: %s" % (metric, average(results[metric])))
+  print("%s: %s" % (metric, average(results['confusion matrix'][metric])))

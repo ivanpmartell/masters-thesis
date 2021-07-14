@@ -24,7 +24,7 @@ if not os.path.exists(model_folder):
 ds = ICNNDataset(file="data/human_representative.fa", neg_folder="data/bdgp", num_positives=7156, binary=False, save_df=True)
 print("Preprocessing: Preparing for stratified sampling")
 data_list = [(x, y) for x, y in tqdm(iter(ds))]
-X = np.array([col[0] for col in data_list], dtype=np.float32)
+X = [col[0] for col in data_list]
 y = np.array([col[1] for col in data_list], dtype=np.int64)
 print("Preprocessing: Done")
 net = NeuralNetClassifier(module=ICNNModule,
@@ -58,9 +58,9 @@ def confusion_matrix_scorer(y, y_pred):
 scorer = MultiScorer({
   'confusion matrix': (confusion_matrix_scorer, {})
 })
-cross_validate(net, X, y, scoring=scorer, cv=10, verbose=1)
+cross_validate(net, X, y, scoring=scorer, cv=2, verbose=1)
 print("Cross Validation: Done")
 results = scorer.get_results()
 
 for metric in results['confusion matrix'].keys():
-  print("%s: %s" % (metric, average(results[metric])))
+  print("%s: %s" % (metric, average(results['confusion matrix'][metric])))

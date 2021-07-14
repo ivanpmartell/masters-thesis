@@ -118,7 +118,7 @@ class ICNNDataset(Dataset):
 
     def __getitem__(self, idx):
         row = self.dataframe.iloc[idx]
-        encoded = self.svm_encoder(row.sequence.upper())
+        encoded = self.sequence_encoder(row.sequence.upper())
         return encoded, np.array(row.label, dtype=self.y_type)
     
     def __len__(self):
