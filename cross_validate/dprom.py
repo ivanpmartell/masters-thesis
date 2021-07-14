@@ -23,9 +23,9 @@ if not os.path.exists(model_folder):
 
 ds = DPROMDataset(file="data/human_complete.fa", neg_file=None, binary=False, save_df=True)
 print("Preprocessing: Preparing for stratified sampling")
-data_list = np.array([(x, y) for x, y in tqdm(iter(ds))])
-X = data_list[:,0]
-y = data_list[:,1]
+data_list = [(x, y) for x, y in tqdm(iter(ds))]
+X = np.array([col[0] for col in data_list], dtype=np.float32)
+y = np.array([col[1] for col in data_list], dtype=np.int64)
 print("Preprocessing: Done")
 net = NeuralNetClassifier(module=DPROMModule,
                           module__num_classes=2,

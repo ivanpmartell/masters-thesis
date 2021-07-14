@@ -23,9 +23,9 @@ if not os.path.exists(model_folder):
 
 ds = CNNPROMDataset(file="data/human_TATA.fa", neg_file=None , num_negatives=8256, binary=False, save_df=False)
 print("Preprocessing: Preparing for stratified sampling")
-data_list = np.array([(x, y) for x, y in tqdm(iter(ds))])
-X = data_list[:,0]
-y = data_list[:,1]
+data_list = [(x, y) for x, y in tqdm(iter(ds))]
+X = np.array([col[0] for col in data_list], dtype=np.float32)
+y = np.array([col[1] for col in data_list], dtype=np.int64)
 print("Preprocessing: Done")
 net = NeuralNetClassifier(module=CNNPROMModule,
                           module__num_classes=2,
@@ -33,10 +33,11 @@ net = NeuralNetClassifier(module=CNNPROMModule,
                           criterion=torch.nn.CrossEntropyLoss,
                           max_epochs=10,
                           lr=0.001,
-                          callbacks=[ProgressBar()],
+                          callbacks=[EarlyStopping(patience=5),
+                                     ProgressBar()],
                           batch_size=16,
                           optimizer=torch.optim.Adam,
-                          train_split=None,
+                          train_split=CVSplit(cv=0.2,stratified=True),
                           device='cuda' if torch.cuda.is_available() else 'cpu')
 
 print("Cross Validation: Started")
