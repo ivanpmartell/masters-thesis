@@ -4,3 +4,6 @@
 [submodule "multiscorer"]
 	path = multiscorer
 	url = https://github.com/StKyr/multiscorer.git
+[submodule "cross_validate/multiscorer"]
+	path = cross_validate/multiscorer
+	url = https://github.com/StKyr/multiscorer.git
