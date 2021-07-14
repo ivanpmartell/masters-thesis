@@ -31,13 +31,12 @@ net = NeuralNetClassifier(module=CNNPROMModule,
                           module__num_classes=2,
                           module__seqs_length=ds.seqs_length,
                           criterion=torch.nn.CrossEntropyLoss,
-                          max_epochs=50,
+                          max_epochs=10,
                           lr=0.001,
-                          callbacks=[EarlyStopping(patience=5),
-                                     ProgressBar()],
+                          callbacks=[ProgressBar()],
                           batch_size=16,
                           optimizer=torch.optim.Adam,
-                          train_split=CVSplit(cv=0.2,stratified=True),
+                          train_split=None,
                           device='cuda' if torch.cuda.is_available() else 'cpu')
 
 print("Cross Validation: Started")
