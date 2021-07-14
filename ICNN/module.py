@@ -15,8 +15,12 @@ class ICNNModule(nn.Module):
         self.out = nn.Linear(num_hidden, num_classes)
     
     def forward(self, x):
-        non_elements = x[0]
-        elements = x[1]
+        if len(x[1].shape) == 1:
+            elements = x[0][0]
+            non_elements = x[0][1]
+        else:
+            elements = x[0]
+            non_elements = x[1]
         convolved = self.conv(non_elements).squeeze(dim=-1)
         features = torch.cat((elements, convolved), dim=1)
         hidden = self.hidden(features)

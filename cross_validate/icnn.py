@@ -58,9 +58,9 @@ def confusion_matrix_scorer(y, y_pred):
 scorer = MultiScorer({
   'confusion matrix': (confusion_matrix_scorer, {})
 })
-cross_validate(net, X, y, scoring=scorer, cv=2, verbose=1)
+cross_validate(net, ds, y, scoring=scorer, cv=2, verbose=1)
 print("Cross Validation: Done")
 results = scorer.get_results()
 
-for metric in results['confusion matrix'].keys():
-  print("%s: %s" % (metric, average(results['confusion matrix'][metric])))
+for metric in results['confusion matrix'][0].keys():
+  print("%s: %s" % (metric, average(results['confusion matrix'][0][metric])))
