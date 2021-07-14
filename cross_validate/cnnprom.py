@@ -31,21 +31,26 @@ net = NeuralNetClassifier(module=CNNPROMModule,
                           module__num_classes=2,
                           module__seqs_length=ds.seqs_length,
                           criterion=torch.nn.CrossEntropyLoss,
-                          max_epochs=10,
+                          max_epochs=50,
                           lr=0.001,
                           callbacks=[EarlyStopping(patience=5),
                                      ProgressBar()],
                           batch_size=16,
                           optimizer=torch.optim.Adam,
-                          train_split=CVSplit(cv=0.2,stratified=True),
+                          train_split=CVSplit(cv=0.1,stratified=True),
                           device='cuda' if torch.cuda.is_available() else 'cpu')
 
 print("Cross Validation: Started")
 #scoring metrics can be modified. Predefined metrics: https://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter
 def confusion_matrix_scorer(y, y_pred):
     cm = confusion_matrix(y, y_pred)
-    return {'tn': cm[0, 0], 'fp': cm[0, 1],
-            'fn': cm[1, 0], 'tp': cm[1, 1]}
+    tn = cm[0, 0]
+    tp = cm[1, 1]
+    fn = cm[1, 0]
+    fp = cm[0, 1]
+    return {'tn': tn , 'fp': fp,
+            'fn': fn, 'tp': tp,
+            'sensitivity': tp/(tp+fn), 'specificity': tn/(tn+fp)}
 scorer = MultiScorer({
   'accuracy': (accuracy_score, {}),
   'precision': (precision_score, {}),
@@ -53,7 +58,7 @@ scorer = MultiScorer({
   'mcc': (matthews_corrcoef, {}),
   'confusion matrix': (confusion_matrix_scorer, {})
 })
-cross_validate(net, X, y, scoring=scorer, cv=2, verbose=1)
+cross_validate(net, X, y, scoring=scorer, cv=10, verbose=1)
 print("Cross Validation: Done")
 results = scorer.get_results()
 
