@@ -23,7 +23,8 @@ class CNNPROMDataset(Dataset):
             df = pd.DataFrame(seqs, columns=['sequence'])
             df.drop_duplicates(inplace=True)
             try:
-                df = df.sample(n=num_positives)
+                if num_positives is not None:
+                    df = df.sample(n=num_positives)
             except ValueError:
                 print("Could not sample file. Check dataset correctness after it is created")
             df['label'] = self.lbl_dict['Promoter']
@@ -36,7 +37,17 @@ class CNNPROMDataset(Dataset):
                 print("Preprocessing: Creating the negative sequences")
                 neg_seqs = self.create_negative_seqs(num_negatives)
             neg_df = pd.DataFrame(neg_seqs, columns=['sequence'])
+            print(len(neg_df))
+            neg_df.drop_duplicates(inplace=True)
+            print(len(neg_df))
+            print(num_negatives)
             neg_df['label'] = self.lbl_dict['Non-Promoter']
+            try:
+                if num_negatives is not None:
+                    neg_df = neg_df.sample(n=num_negatives)
+            except ValueError:
+                print("Could not sample file. Check dataset correctness after it is created")
+
             self.dataframe = df.append(neg_df, ignore_index=True)
         if(binary):
             self.y_type = np.float32
@@ -81,6 +92,7 @@ class CNNPROMDataset(Dataset):
         self.dataframe.to_csv(file, index=False)
     
     def create_negative_seqs(self, num_negatives):
+        num_negatives = num_negatives + 5000 #in case of duplicates
         mariadb_connection = mariadb.connect(host='genome-mysql.soe.ucsc.edu', user='genomep', password='password', database='hg38')
         cursor = mariadb_connection.cursor()
         neg_seqs = []
