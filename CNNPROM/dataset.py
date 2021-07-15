@@ -14,15 +14,19 @@ class CNNPROMDataset(Dataset):
     dna_dict: dict = {'A': 0, 'T': 1, 'G': 2, 'C': 3}
     lbl_dict: dict = {'Non-Promoter': 0, 'Promoter': 1}
 
-    def __init__(self, file, neg_file, num_negatives, binary, save_df):
+    def __init__(self, file, neg_file, num_negatives, num_positives, binary, save_df=None, test_set=False, split_ratio=0.30):
         if('csv' in pathlib.Path(file).suffix):
             self.load_dataframe(file)
         else:
             seqs = self.load_file(file)
             self.seqs_length = len(seqs[0])
             df = pd.DataFrame(seqs, columns=['sequence'])
+            df.drop_duplicates(inplace=True)
+            try:
+                df = df.sample(n=num_positives)
+            except ValueError:
+                print("Could not sample file. Check dataset correctness after it is created")
             df['label'] = self.lbl_dict['Promoter']
-
             if(neg_file is not None):
                 neg_seqs = self.load_file(neg_file)
                 neg_seqs_length = len(neg_seqs[0])
@@ -36,8 +40,27 @@ class CNNPROMDataset(Dataset):
             self.dataframe = df.append(neg_df, ignore_index=True)
         if(binary):
             self.y_type = np.float32
-        if(save_df):
-            self.save_dataframe('models/cnnprom/dataframe.csv')
+        if(test_set):
+            from sklearn.utils import resample
+            from sklearn.model_selection import train_test_split
+            dprom_train_df = pd.read_csv(f'models/{save_df.replace("cnnprom", "dprom")}/train.csv')
+            dprom_test_df = pd.read_csv(f'models/{save_df.replace("cnnprom", "dprom")}/test.csv')
+
+            train_promoters_df = dprom_train_df[dprom_train_df['label'] == 1]
+            resampled_train_df = resample(train_promoters_df, n_samples=int(num_positives*(1-split_ratio)),
+                                                replace=False, random_state=0)
+            train, test = train_test_split(neg_df, stratify=neg_df["label"], test_size=split_ratio)
+            train = train.append(resampled_train_df, ignore_index=True)
+
+            test_promoters_df = dprom_test_df[dprom_test_df['label'] == 1]
+            resampled_test_df = resample(test_promoters_df, n_samples=int(num_positives*split_ratio),
+                                                replace=False, random_state=0)
+            test = test.append(resampled_test_df, ignore_index=True)
+
+            train.to_csv(f'models/{save_df}/train.csv',index=False)
+            test.to_csv(f'models/{save_df}/test.csv',index=False)
+        if(save_df is not None):
+            self.save_dataframe(f'models/{save_df}/dataframe.csv')
 
     def load_file(self, file):
         records = []

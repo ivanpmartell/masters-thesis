@@ -67,13 +67,17 @@ cp = Checkpoint(dirname=model_folder, f_params=os.path.basename(args.model))
 neg_f = None
 if(args.neg_file != ''):
     neg_f = args.neg_file
+if(args.binary):
+    nc = 1
+else:
+    nc = 2
 ds = CNNPROMDataset(file=args.input, neg_file=neg_f, num_negatives=args.neg_sample, binary=args.binary, save_df=False)
 
 def tqdm_iterator(dataset, **kwargs):
     return tqdm(torch.utils.data.DataLoader(dataset, **kwargs))
 
 net = NeuralNetClassifier(module=CNNPROMModule,
-                          module__num_classes=2,
+                          module__num_classes=nc,
                           module__seqs_length=ds.seqs_length,
                           batch_size=256,
                           device='cuda' if torch.cuda.is_available() else 'cpu',

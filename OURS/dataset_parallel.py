@@ -34,8 +34,8 @@ class OURDataset(Dataset):
             self.dataframe = pd.DataFrame(dfs, columns=['sequence', 'label'])
         if(binary):
             self.y_type = np.float32
-        if(save_df):
-            self.save_dataframe('models/ours/dataframe.csv')
+        if(save_df is not None):
+            self.save_dataframe(f'models/{save_df}/dataframe.csv')
 
     def load_dataframe(self, file):
         self.dataframe = pd.read_csv(file)

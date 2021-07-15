@@ -64,13 +64,17 @@ cp = Checkpoint(dirname=model_folder, f_params=os.path.basename(args.model))
 # Binary(sigmoid): Use NeuralNetBinaryClassifier (!IMPORT IT), num_classes=1, binary=True
 # Multi(softmax): Use NeuralNetClassifier (!IMPORT IT), num_classes=2, binary=False
 
+if(args.binary):
+    nc = 1
+else:
+    nc = 2
 ds = ICNNDataset(file=args.input, neg_folder=args.neg_folder, num_positives=args.pos_sample, binary=args.binary, save_df=False)
 
 def tqdm_iterator(dataset, **kwargs):
     return tqdm(torch.utils.data.DataLoader(dataset, **kwargs))
     
 net = NeuralNetClassifier(module=ICNNModule,
-                          module__num_classes=2,
+                          module__num_classes=nc,
                           module__elements_length=ds.elements_length,
                           module__non_elements_length=ds.non_elements_length,
                           batch_size=256,
