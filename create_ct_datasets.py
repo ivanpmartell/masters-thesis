@@ -17,7 +17,7 @@ DPROMDataset(file="data/human_complete.fa", neg_file=None, binary=False, save_df
 create_folder_ifne('models/cnnprom_TATA')
 CNNPROMDataset(file="data/human_TATA.fa", neg_file=None , num_negatives=8256, binary=False, save_df="cnnprom_TATA", num_positives=1426, test_set=True, split_ratio=0.33)
 create_folder_ifne('models/cnnprom_nonTATA')
-CNNPROMDataset(file="data/CNNPromoterData/human_non_tata.fa", neg_file="data/CNNPromoterData/human_nonprom_big.fa" , num_negatives=None, num_positives=19811, binary=False, save_df="cnnprom_nonTATA", test_set=True, split_ratio=0.43)
+CNNPROMDataset(file="data/human_nonTATA.fa", neg_file=None , num_negatives=27731, num_positives=19811, binary=False, save_df="cnnprom_nonTATA", test_set=True, split_ratio=0.43)
 create_folder_ifne('models/cnnprom_complete')
 CNNPROMDataset(file="data/human_complete.fa", neg_file=None , num_negatives=8256 + 27731, num_positives=1426 + 19811, binary=False, save_df="cnnprom_complete", test_set=True, split_ratio=0.42)
 
