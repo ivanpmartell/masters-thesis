@@ -4,6 +4,7 @@ import torch
 import argparse
 import numpy as np
 from tqdm import tqdm
+from skorch.dataset import CVSplit
 from skorch import NeuralNetBinaryClassifier, NeuralNetClassifier
 from skorch.callbacks import EarlyStopping, ProgressBar, Checkpoint
 
@@ -77,11 +78,12 @@ net = cls(module=CNNPROMModule,
                           module__seqs_length=ds.seqs_length,
                           criterion=crit,
                           max_epochs=50,
-                          lr=0.001,
+                          lr=0.005,
                           callbacks=[EarlyStopping(patience=10),
                                      ProgressBar(),
                                      Checkpoint(dirname=model_folder,
                                                 f_params='model.pt')],
+                          train_split=CVSplit(cv=0.1,stratified=True),
                           batch_size=16,
                           optimizer=torch.optim.Adam,
                           device='cuda' if torch.cuda.is_available() else 'cpu')

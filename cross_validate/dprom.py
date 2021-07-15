@@ -15,7 +15,7 @@ sys.path.append(os.path.join(sys.path[0], '..'))
 from DPROM.module import DPROMModule
 from DPROM.dataset import DPROMDataset
 
-model_folder = "models/dprom/"
+model_folder = "cv_models/dprom/"
 if not os.path.exists(model_folder):
     os.makedirs(model_folder)
 # Binary(sigmoid): Use NeuralNetBinaryClassifier, num_classes=1, criterion=BCEWithLogitsLoss, binary=True

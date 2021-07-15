@@ -52,7 +52,7 @@ def confusion_matrix_scorer(y, y_pred):
     return {'tn': tn , 'fp': fp,
             'fn': fn, 'tp': tp,
             'sensitivity': tp/(tp+fn), 'specificity': tn/(tn+fp),
-            'precision': tp/(tp+fp), 'mcc': mcc }
+            'precision': tp/(tp+fp), 'mcc': mcc, 'accuracy': (tp + tn)/(tp + tn + fp + fn) }
 scorer = MultiScorer({
   'confusion matrix': (confusion_matrix_scorer, {})
 })
@@ -63,5 +63,5 @@ results = scorer.get_results()
 with open(os.path.join(model_folder, "cv_results.txt"), 'w') as f:
   for metric in results['confusion matrix'][0].keys():
     f.write("%s: %s\n" % (metric, average(results['confusion matrix'][0][metric])))
-
-print(results)
+  f.write("\n\n")
+  f.writelines(str(results))

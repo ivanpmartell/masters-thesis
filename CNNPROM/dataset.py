@@ -37,10 +37,7 @@ class CNNPROMDataset(Dataset):
                 print("Preprocessing: Creating the negative sequences")
                 neg_seqs = self.create_negative_seqs(num_negatives)
             neg_df = pd.DataFrame(neg_seqs, columns=['sequence'])
-            print(len(neg_df))
             neg_df.drop_duplicates(inplace=True)
-            print(len(neg_df))
-            print(num_negatives)
             neg_df['label'] = self.lbl_dict['Non-Promoter']
             try:
                 if num_negatives is not None:
@@ -60,7 +57,7 @@ class CNNPROMDataset(Dataset):
             train_promoters_df = dprom_train_df[dprom_train_df['label'] == 1]
             resampled_train_df = resample(train_promoters_df, n_samples=int(num_positives*(1-split_ratio)),
                                                 replace=False, random_state=0)
-            train, test = train_test_split(neg_df, stratify=neg_df["label"], test_size=split_ratio)
+            train, test = train_test_split(neg_df, test_size=split_ratio)
             train = train.append(resampled_train_df, ignore_index=True)
 
             test_promoters_df = dprom_test_df[dprom_test_df['label'] == 1]

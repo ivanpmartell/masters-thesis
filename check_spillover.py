@@ -10,7 +10,10 @@ def check_models(models):
             train_df = pd.read_csv(train_set)
             df_len = len(train_df)
             cond = train_df['sequence'].isin(test_df['sequence'])
-            train_df.drop(train_df[cond].index, inplace = True)
+            data_cond = train_df[cond]
+            if len(data_cond) > 0:
+                print(data_cond['sequence'])
+            train_df.drop(data_cond.index, inplace = True)
             print(f"{df_len - len(train_df)} overlapping sequences on (test {model} - train {other_model}) pair")
 
 models = ["dprom_complete", "cnnprom_complete", "icnn_complete"]

@@ -15,7 +15,7 @@ sys.path.append(os.path.join(sys.path[0], '..'))
 from ICNN.module import ICNNModule
 from ICNN.dataset import ICNNDataset
 
-model_folder = "models/icnn/"
+model_folder = "cv_models/icnn/"
 if not os.path.exists(model_folder):
     os.makedirs(model_folder)
 # Binary(sigmoid): Use NeuralNetBinaryClassifier, num_classes=1, criterion=BCEWithLogitsLoss, binary=True

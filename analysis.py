@@ -105,6 +105,18 @@ def threshold_flipped(x):
         return 0
 
 
+def sensitivity(fn, tp):
+    return tp/(tp + fn)
+
+
+def specificity(tn, fp):
+    return tn/(tn + fp)
+
+
+def ppv(fp, tp):
+    return tp/(tp + fp)
+
+
 #TODO: Add the distribution curve analysis for optimal threshold
 # For sigmoid now
 def create_histogram(data, colors, n_bins, title, zoom=slice(None), log=False):
@@ -134,7 +146,7 @@ if(is_softmax):
     truths_neg = df[df.label == 0][['prediction_0', 'prediction_1']].to_numpy()
     scores_neg = np.apply_along_axis(softmax, 1, truths_neg, slice(None))
     predictions = df[['prediction_0', 'prediction_1']].to_numpy()
-    scores = np.concatenate([truths_pos[:, 1], truths_neg[:, 1]])
+    scores = np.argmax(np.apply_along_axis(softmax, 1, predictions, slice(None)), axis=1)
 else:
     truths_pos = df[df.label == 1][['prediction']].to_numpy()
     scores_pos = np.apply_along_axis(sigmoid, 1, truths_pos)
@@ -192,6 +204,10 @@ def make_report(scores, threshold_func, title):
     recall_score = metrics.recall_score(labels, thresholded_scores)
     fbeta_score = metrics.fbeta_score(labels, thresholded_scores, beta=1.0)
     jaccard_score = metrics.jaccard_score(labels, thresholded_scores)
+    tn, fp, fn, tp = metrics.confusion_matrix(labels, thresholded_scores).ravel()
+    sn_score = sensitivity(fn, tp)
+    sp_score = specificity(tn, fp)
+    ppv_score = ppv(fp, tp)
 
     txt_string = 'Metrics report for trained model (%s) .\nThreshold set to %.2f\n' % (args.results, args.threshold)+\
                 report + '\nAccuracy score: %0.3f' % acc_score +\
@@ -201,7 +217,10 @@ def make_report(scores, threshold_func, title):
                 '\nPrecision score: %0.3f' % precision_score +\
                 '\nRecall score: %0.3f' % recall_score +\
                 '\nF-beta score: %0.3f' % fbeta_score +\
-                '\nJaccard Similarity score: %0.3f' % jaccard_score
+                '\nJaccard Similarity score: %0.3f' % jaccard_score +\
+                '\nSensitivity score: %0.3f' % sn_score +\
+                '\nSpecificity score: %0.3f' % sp_score +\
+                '\nPPV score: %0.3f' % ppv_score
 
     with open(os.path.join(args.output, '%s-report.txt' % title), 'w') as text_file:
         text_file.write(txt_string)
