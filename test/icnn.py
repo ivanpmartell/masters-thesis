@@ -66,14 +66,16 @@ cp = Checkpoint(dirname=model_folder, f_params=os.path.basename(args.model))
 
 if(args.binary):
     nc = 1
+    cls = NeuralNetBinaryClassifier
 else:
     nc = 2
+    cls = NeuralNetClassifier
 ds = ICNNDataset(file=args.input, neg_folder=args.neg_folder, num_positives=args.pos_sample, binary=args.binary, save_df=False)
 
 def tqdm_iterator(dataset, **kwargs):
     return tqdm(torch.utils.data.DataLoader(dataset, **kwargs))
     
-net = NeuralNetClassifier(module=ICNNModule,
+net = cls(module=ICNNModule,
                           module__num_classes=nc,
                           module__elements_length=ds.elements_length,
                           module__non_elements_length=ds.non_elements_length,
@@ -85,12 +87,12 @@ print("Testing: Initialized")
 net.load_params(checkpoint=cp)
 print("Testing: Model Loaded")
 print("Testing: Predicting")
-y_score = net.predict_proba(ds)
+y_score = net.forward(ds)
 print("Testing: Predicting Done")
 if(args.binary):
-    df = pd.DataFrame(list(zip(ds.dataframe.sequence, ds.dataframe.label, y_score)), columns=['sequence', 'label', 'prediction'])
+    df = pd.DataFrame(list(zip(ds.dataframe.sequence, ds.dataframe.label, y_score.tolist())), columns=['sequence', 'label', 'prediction'])
 else:
-    logits = list(zip(*y_score))
+    logits = list(zip(*y_score.tolist()))
     df = pd.DataFrame(list(zip(ds.dataframe.sequence, ds.dataframe.label, logits[0], logits[1])), columns=['sequence', 'label', 'prediction_0', 'prediction_1'])
 print("Testing: Saving Results")
 df.to_csv(args.output)

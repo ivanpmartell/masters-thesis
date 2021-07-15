@@ -63,14 +63,16 @@ if(args.neg_file != ''):
 if(args.binary):
     nc = 1
     crit = torch.nn.BCEWithLogitsLoss
+    cls = NeuralNetBinaryClassifier
 else:
     nc = 2
     crit = torch.nn.CrossEntropyLoss
-ds = CNNPROMDataset(file=args.input, neg_file=neg_f, num_negatives=args.neg_sample, binary=args.binary, save_df=False)
+    cls = NeuralNetClassifier
+ds = CNNPROMDataset(file=args.input, neg_file=neg_f, num_negatives=args.neg_sample, binary=args.binary, save_df=None)
 print("Preprocessing: Preparing for stratified sampling")
 y_train = np.array([y for _, y in tqdm(iter(ds))])
 print("Preprocessing: Done")
-net = NeuralNetBinaryClassifier(module=CNNPROMModule,
+net = cls(module=CNNPROMModule,
                           module__num_classes=nc,
                           module__seqs_length=ds.seqs_length,
                           criterion=crit,

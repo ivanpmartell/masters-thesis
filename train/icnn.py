@@ -63,21 +63,23 @@ if(args.neg_file != ''):
 if(args.binary):
     nc = 1
     crit = torch.nn.BCEWithLogitsLoss
+    cls = NeuralNetBinaryClassifier
 else:
     nc = 2
     crit = torch.nn.CrossEntropyLoss
+    cls = NeuralNetClassifier
 ds = ICNNDataset(file=args.input, neg_folder=args.neg_folder, num_positives=args.pos_sample, binary=args.binary, save_df=False)
 print("Preprocessing: Preparing for stratified sampling")
 y_train = np.array([y for _, y in tqdm(iter(ds))])
 print("Preprocessing: Done")
-net = NeuralNetClassifier(module=ICNNModule,
+net = cls(module=ICNNModule,
                           module__num_classes=nc,
                           module__elements_length=ds.elements_length,
                           module__non_elements_length=ds.non_elements_length,
                           criterion=crit,
                           max_epochs=50,
                           lr=0.001,
-                          callbacks=[EarlyStopping(patience=5),
+                          callbacks=[EarlyStopping(patience=10),
                                      ProgressBar(),
                                      Checkpoint(dirname=model_folder,
                                                 f_params='model.pt')],

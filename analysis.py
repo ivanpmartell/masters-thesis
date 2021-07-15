@@ -142,6 +142,10 @@ else:
     scores_neg = np.apply_along_axis(sigmoid, 1, truths_neg)
     predictions = df['prediction'].to_numpy()
     scores = np.vectorize(sigmoid)(predictions)
+    truths_pos = truths_pos.squeeze()
+    scores_pos = scores_pos.squeeze()
+    truths_neg = truths_neg.squeeze()
+    scores_neg = scores_neg.squeeze()
 labels = df['label'].to_numpy()
 print("Finished reading results")
 

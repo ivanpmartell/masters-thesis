@@ -14,7 +14,7 @@ class CNNPROMDataset(Dataset):
     dna_dict: dict = {'A': 0, 'T': 1, 'G': 2, 'C': 3}
     lbl_dict: dict = {'Non-Promoter': 0, 'Promoter': 1}
 
-    def __init__(self, file, neg_file, num_negatives, num_positives, binary, save_df=None, test_set=False, split_ratio=0.30):
+    def __init__(self, file, neg_file, num_negatives=None, num_positives=None, binary=False, save_df=None, test_set=False, split_ratio=0.30):
         if('csv' in pathlib.Path(file).suffix):
             self.load_dataframe(file)
         else:

@@ -62,14 +62,16 @@ if(args.neg_file != ''):
     neg_f = args.neg_file
 if(args.binary):
     nc = 1
+    cls = NeuralNetBinaryClassifier
 else:
     nc = 2
+    cls = NeuralNetClassifier
 ds = DPROMDataset(file=args.input, neg_file=neg_f, binary=args.binary, save_df=False)
 
 def tqdm_iterator(dataset, **kwargs):
     return tqdm(torch.utils.data.DataLoader(dataset, **kwargs))
 
-net = NeuralNetClassifier(module=DPROMModule,
+net = cls(module=DPROMModule,
                           module__num_classes=nc,
                           module__seqs_length=ds.seqs_length,
                           batch_size=256,
@@ -80,12 +82,12 @@ print("Testing: Initialized")
 net.load_params(checkpoint=cp)
 print("Testing: Model Loaded")
 print("Testing: Predicting")
-y_score = net.predict_proba(ds)
+y_score = net.forward(ds)
 print("Testing: Predicting Done")
 if(args.binary):
-    df = pd.DataFrame(list(zip(ds.dataframe.sequence, ds.dataframe.label, y_score)), columns=['sequence', 'label', 'prediction'])
+    df = pd.DataFrame(list(zip(ds.dataframe.sequence, ds.dataframe.label, y_score.tolist())), columns=['sequence', 'label', 'prediction'])
 else:
-    logits = list(zip(*y_score))
+    logits = list(zip(*y_score.tolist()))
     df = pd.DataFrame(list(zip(ds.dataframe.sequence, ds.dataframe.label, logits[0], logits[1])), columns=['sequence', 'label', 'prediction_0', 'prediction_1'])
 print("Testing: Saving Results")
 df.to_csv(args.output)
