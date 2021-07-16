@@ -136,6 +136,10 @@ dmypy.json
 models/
 evaluation/
 results/
+datasets/
+tts_results/
+cv_results/
+overlap_results/
 
 # chromosomes
 data/human_chrs/*.fa

@@ -2,9 +2,10 @@ import os
 import sys
 import torch
 import numpy as np
+import argparse
 from numpy import average
 from tqdm import tqdm
-from skorch import NeuralNetClassifier
+from skorch import NeuralNetClassifier, NeuralNetBinaryClassifier
 from skorch.dataset import CVSplit
 from skorch.callbacks import EarlyStopping, ProgressBar, Checkpoint
 from sklearn.metrics import matthews_corrcoef, accuracy_score, precision_score, recall_score, confusion_matrix
@@ -15,13 +16,64 @@ sys.path.append(os.path.join(sys.path[0], '..'))
 from ICNN.module import ICNNModule
 from ICNN.dataset import ICNNDataset
 
-model_folder = "cv_models/icnn/"
+###########################################
+# Command line interface
+this_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
+default_out = os.path.join(os.path.dirname(this_dir), "results.csv")
+default_input = "data/human_representative.fa"
+default_pos_size = 7156
+default_neg = "data/bdgp"
+
+parser = argparse.ArgumentParser(description=r"This script will test a model's performance with ICNN dataset")
+parser.add_argument('-binary', 
+        type=bool, 
+        help='For model: a 1 neuron sigmoid output if set, otherwise a 2 neuron softmax output',
+        default=False)
+parser.add_argument('--output',
+        type = str,
+        help = f'Path for desired output file. Default: {default_out}. '
+        'The output file is a csv with the sequences tested, their true labels, and the predictions by the model',
+        default = default_out
+        )
+parser.add_argument('--input',
+        type = str,
+        help = f'Path to desired input file. Default: {default_input}.'
+        'The annotations file is an sga obtained from Mass Genome Annotation Data Repository',
+        default = default_input
+        )
+parser.add_argument('--neg_folder',
+        type = str,
+        help = f'Path to desired annotations file. Default: {default_neg}.'
+        'The annotations file is an sga obtained from Mass Genome Annotation Data Repository',
+        default = default_neg
+        )
+parser.add_argument('--pos_sample',
+        type = int,
+        help = f'Path to desired annotations file. Default: {default_pos_size}.'
+        'The annotations file is an sga obtained from Mass Genome Annotation Data Repository',
+        default = default_pos_size
+        )
+args = parser.parse_args()
+###########################################
+
+model_folder = args.output
 if not os.path.exists(model_folder):
     os.makedirs(model_folder)
-# Binary(sigmoid): Use NeuralNetBinaryClassifier, num_classes=1, criterion=BCEWithLogitsLoss, binary=True
-# Multi(softmax): Use NeuralNetClassifier, num_classes=2, criterion=CrossEntropyLoss, binary=False
+# Binary(sigmoid): Use NeuralNetBinaryClassifier (!IMPORT IT), num_classes=1, criterion=BCEWithLogitsLoss, binary=True
+# Multi(softmax): Use NeuralNetClassifier (!IMPORT IT), num_classes=2, criterion=CrossEntropyLoss, binary=False
 
-ds = ICNNDataset(file="data/human_representative.fa", neg_folder="data/bdgp", num_positives=7156, binary=False, save_df=True)
+neg_f = None
+if(args.neg_file != ''):
+    neg_f = args.neg_file
+if(args.binary):
+    nc = 1
+    crit = torch.nn.BCEWithLogitsLoss
+    cls = NeuralNetBinaryClassifier
+else:
+    nc = 2
+    crit = torch.nn.CrossEntropyLoss
+    cls = NeuralNetClassifier
+ds = ICNNDataset(file=args.input, neg_folder=args.neg_folder, num_positives=args.pos_sample, binary=args.binary, save_df=False)
 print("Preprocessing: Preparing for stratified sampling")
 data_list = [(x, y) for x, y in tqdm(iter(ds))]
 X = [col[0] for col in data_list]
