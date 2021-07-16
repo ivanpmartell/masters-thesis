@@ -66,7 +66,7 @@ if(args.binary):
 else:
     nc = 2
     cls = NeuralNetClassifier
-ds = DPROMDataset(file=args.input, neg_file=neg_f, binary=args.binary, save_df=False)
+ds = DPROMDataset(file=args.input, neg_file=neg_f, binary=args.binary, save_df=None)
 
 def tqdm_iterator(dataset, **kwargs):
     return tqdm(torch.utils.data.DataLoader(dataset, **kwargs))
