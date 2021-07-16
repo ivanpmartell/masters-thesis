@@ -107,7 +107,8 @@ print("Cross Validation: Done")
 results = scorer.get_results()
 
 with open(os.path.join(model_folder, "cv_results.txt"), 'w') as f:
-  for metric in results['confusion matrix'][0].keys():
-    f.write("%s: %s\n" % (metric, average(results['confusion matrix'][0][metric])))
-
-print(results)
+    for metric in results['confusion matrix'][0].keys():
+        f.write("%s: %s\n" % (metric, average(results['confusion matrix'][0][metric])))
+    f.write("\n\n")
+    f.write(str(results))
+print("Results written to file")
