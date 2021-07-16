@@ -2,11 +2,11 @@ import pandas as pd
 
 def check_models(models):
     for model in models:
-        test_set = f"models/{model}/test.csv"
+        test_set = f"datasets/{model}/test.csv"
         test_df = pd.read_csv(test_set)
         other_models = models
         for other_model in other_models:
-            train_set = f"models/{other_model}/train.csv"
+            train_set = f"datasets/{other_model}/train.csv"
             train_df = pd.read_csv(train_set)
             df_len = len(train_df)
             cond = train_df['sequence'].isin(test_df['sequence'])
