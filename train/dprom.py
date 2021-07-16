@@ -25,6 +25,12 @@ parser.add_argument('-binary',
         type=bool, 
         help='For model: a 1 neuron sigmoid output if set, otherwise a 2 neuron softmax output',
         default=False)
+parser.add_argument('--model',
+        type = str,
+        help = f'Path for desired model file. Default: {default_mod}. '
+        'The model file is a checkpoint created by pytorch with the weights of a model',
+        default = default_mod
+        )
 parser.add_argument('--output',
         type = str,
         help = f'Path for desired output file. Default: {default_out}. '
@@ -46,11 +52,10 @@ parser.add_argument('--neg_file',
 args = parser.parse_args()
 ###########################################
 
-model_folder = args.output
-if not os.path.exists(model_folder):
-    os.makedirs(model_folder)
-# Binary(sigmoid): Use NeuralNetBinaryClassifier (!IMPORT IT), num_classes=1, criterion=BCEWithLogitsLoss, binary=True
-# Multi(softmax): Use NeuralNetClassifier (!IMPORT IT), num_classes=2, criterion=CrossEntropyLoss, binary=False
+model_folder = os.path.dirname(args.model)
+cp = Checkpoint(dirname=model_folder, f_params=os.path.basename(args.model))
+# Binary(sigmoid): Use NeuralNetBinaryClassifier (!IMPORT IT), num_classes=1, binary=True
+# Multi(softmax): Use NeuralNetClassifier (!IMPORT IT), num_classes=2, binary=False
 
 neg_f = None
 if(args.neg_file != ''):
@@ -63,7 +68,7 @@ else:
     nc = 2
     crit = torch.nn.CrossEntropyLoss
     cls = NeuralNetClassifier
-ds = DPROMDataset(file=args.input, neg_file=neg_f, binary=args.binary, save_df=False)
+ds = DPROMDataset(file=args.input, neg_file=neg_f, binary=args.binary, save_df=None)
 print("Preprocessing: Preparing for stratified sampling")
 y_train = np.array([y for _, y in tqdm(iter(ds))])
 print("Preprocessing: Done")

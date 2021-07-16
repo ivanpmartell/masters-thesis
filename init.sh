@@ -5,4 +5,4 @@ pip3 install virtualenv
 source ~/.bashrc
 virtualenv venv
 source venv/bin/activate
-pip install biopython==1.77 torch skorch pandas mysql-connector-python
+pip install biopython==1.77 torch skorch pandas mysql-connector-python matplotlib

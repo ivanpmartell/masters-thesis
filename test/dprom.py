@@ -5,7 +5,7 @@ import argparse
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
-from skorch import NeuralNetClassifier
+from skorch import NeuralNetClassifier, NeuralNetBinaryClassifier
 from skorch.callbacks import Checkpoint
 
 sys.path.append(os.path.join(sys.path[0], '..'))
