@@ -37,8 +37,8 @@ class ICNNDataset(Dataset):
         if test_set:
             from sklearn.utils import resample
             from sklearn.model_selection import train_test_split
-            dprom_train_df = pd.read_csv(f'models/{save_df.replace("icnn", "dprom")}/train.csv')
-            dprom_test_df = pd.read_csv(f'models/{save_df.replace("icnn", "dprom")}/test.csv')
+            dprom_train_df = pd.read_csv(f'datasets/{save_df.replace("icnn", "dprom")}/train.csv')
+            dprom_test_df = pd.read_csv(f'datasets/{save_df.replace("icnn", "dprom")}/test.csv')
 
             train_promoters_df = dprom_train_df[dprom_train_df['label'] == 1]
             resampled_train_df = resample(train_promoters_df, n_samples=int(num_positives*(1-split_ratio)),
@@ -51,10 +51,10 @@ class ICNNDataset(Dataset):
                                                 replace=False, random_state=0)
             test = test.append(resampled_test_df, ignore_index=True)
 
-            train.to_csv(f'models/{save_df}/train.csv',index=False)
-            test.to_csv(f'models/{save_df}/test.csv',index=False)
+            train.to_csv(f'datasets/{save_df}/train.csv',index=False)
+            test.to_csv(f'datasets/{save_df}/test.csv',index=False)
         if(save_df is not None):
-            self.save_dataframe(f'models/{save_df}/dataframe.csv')
+            self.save_dataframe(f'datasets/{save_df}/dataframe.csv')
         example = self.dataframe.iloc[0]
         element, non_element = self.sequence_encoder(example.sequence.upper())
         self.elements_length = len(element)

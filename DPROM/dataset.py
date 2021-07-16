@@ -41,12 +41,12 @@ class DPROMDataset(Dataset):
         if(binary):
             self.y_type = np.float32
         if(save_df is not None):
-            self.save_dataframe(f'models/{save_df}/dataframe.csv')
+            self.save_dataframe(f'datasets/{save_df}/dataframe.csv')
         if test_set:
             from sklearn.model_selection import train_test_split
             train, test = train_test_split(self.dataframe, stratify=self.dataframe["label"], test_size=split_ratio)
-            train.to_csv(f'models/{save_df}/train.csv',index=False)
-            test.to_csv(f'models/{save_df}/test.csv',index=False)
+            train.to_csv(f'datasets/{save_df}/train.csv',index=False)
+            test.to_csv(f'datasets/{save_df}/test.csv',index=False)
 
     def load_file(self, file):
         records = []
