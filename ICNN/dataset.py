@@ -14,22 +14,27 @@ class ICNNDataset(Dataset):
     dna_dict: dict = {'A': 0, 'T': 1, 'G': 2, 'C': 3}
     lbl_dict: dict = {'Non-Promoter': 0, 'Promoter': 1}
 
-    def __init__(self, file, neg_folder, num_positives, binary, save_df=None, test_set=False, split_ratio=0.30):
+    def __init__(self, file, neg_folder, num_positives, binary, save_df=None, test_set=False, split_ratio=0.30, drop_dups=True):
         if('csv' in pathlib.Path(file).suffix):
             self.load_dataframe(file)
         else:
             seqs = self.load_file(file)
             seqs_length = len(seqs[0])
             df = pd.DataFrame(seqs, columns=['sequence'])
-            df.drop_duplicates(inplace=True)
+            if(drop_dups):
+                df.drop_duplicates(inplace=True)
             df['label'] = self.lbl_dict['Promoter']
+            neg_seqs_list = []
             for neg_file in self.get_files_in_folder(neg_folder):
                 neg_seqs = self.load_file(neg_file)
                 neg_seqs_length = len(neg_seqs[0])
                 if(seqs_length != neg_seqs_length):
                     raise Exception(r"Promoter and Non-Promoter sequence lengths don't match")
-                neg_df = pd.DataFrame(neg_seqs, columns=['sequence'])
-                neg_df['label'] = self.lbl_dict['Non-Promoter']
+                neg_seqs_list.extend(neg_seqs)
+            neg_df = pd.DataFrame(neg_seqs_list, columns=['sequence'])
+            if(drop_dups):
+                neg_df.drop_duplicates(inplace=True)
+            neg_df['label'] = self.lbl_dict['Non-Promoter']
             self.dataframe = df.sample(n=num_positives)
             self.dataframe = self.dataframe.append(neg_df, ignore_index=True)
         if(binary):

@@ -14,14 +14,15 @@ class CNNPROMDataset(Dataset):
     dna_dict: dict = {'A': 0, 'T': 1, 'G': 2, 'C': 3}
     lbl_dict: dict = {'Non-Promoter': 0, 'Promoter': 1}
 
-    def __init__(self, file, neg_file, num_negatives=None, num_positives=None, binary=False, save_df=None, test_set=False, split_ratio=0.30):
+    def __init__(self, file, neg_file, num_negatives=None, num_positives=None, binary=False, save_df=None, test_set=False, split_ratio=0.30, drop_dups=True):
         if('csv' in pathlib.Path(file).suffix):
             self.load_dataframe(file)
         else:
             seqs = self.load_file(file)
             self.seqs_length = len(seqs[0])
             df = pd.DataFrame(seqs, columns=['sequence'])
-            df.drop_duplicates(inplace=True)
+            if(drop_dups):
+                df.drop_duplicates(inplace=True)
             try:
                 if num_positives is not None:
                     df = df.sample(n=num_positives)
@@ -37,7 +38,8 @@ class CNNPROMDataset(Dataset):
                 print("Preprocessing: Creating the negative sequences")
                 neg_seqs = self.create_negative_seqs(num_negatives)
             neg_df = pd.DataFrame(neg_seqs, columns=['sequence'])
-            neg_df.drop_duplicates(inplace=True)
+            if(drop_dups):
+                neg_df.drop_duplicates(inplace=True)
             neg_df['label'] = self.lbl_dict['Non-Promoter']
             try:
                 if num_negatives is not None:
