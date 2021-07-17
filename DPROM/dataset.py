@@ -15,7 +15,7 @@ class DPROMDataset(Dataset):
     dna_dict: dict = {'A': 0, 'T': 1, 'G': 2, 'C': 3}
     lbl_dict: dict = {'Non-Promoter': 0, 'Promoter': 1}
 
-    def __init__(self, file, neg_file, binary, save_df=None, test_set=False, split_ratio=0.30, drop_dups=True):
+    def __init__(self, file, neg_file, binary, save_df=None, test_set=False, split_ratio=0.30, drop_dups=True, dataset_folder="datasets"):
         if('csv' in pathlib.Path(file).suffix):
             self.load_dataframe(file)
         else:
@@ -44,12 +44,12 @@ class DPROMDataset(Dataset):
         if(binary):
             self.y_type = np.float32
         if(save_df is not None):
-            self.save_dataframe(f'datasets/{save_df}/dataframe.csv')
+            self.save_dataframe(f'{dataset_folder}/{save_df}/dataframe.csv')
         if test_set:
             from sklearn.model_selection import train_test_split
             train, test = train_test_split(self.dataframe, stratify=self.dataframe["label"], test_size=split_ratio)
-            train.to_csv(f'datasets/{save_df}/train.csv',index=False)
-            test.to_csv(f'datasets/{save_df}/test.csv',index=False)
+            train.to_csv(f'{dataset_folder}/{save_df}/train.csv',index=False)
+            test.to_csv(f'{dataset_folder}/{save_df}/test.csv',index=False)
 
     def load_file(self, file):
         records = []

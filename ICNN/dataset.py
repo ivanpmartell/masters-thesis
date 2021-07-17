@@ -14,7 +14,7 @@ class ICNNDataset(Dataset):
     dna_dict: dict = {'A': 0, 'T': 1, 'G': 2, 'C': 3}
     lbl_dict: dict = {'Non-Promoter': 0, 'Promoter': 1}
 
-    def __init__(self, file, neg_folder, num_positives, binary, save_df=None, test_set=False, split_ratio=0.30, drop_dups=True):
+    def __init__(self, file, neg_folder, num_positives, binary, save_df=None, test_set=False, split_ratio=0.30, drop_dups=True, dataset_folder="datasets"):
         if('csv' in pathlib.Path(file).suffix):
             self.load_dataframe(file)
         else:
@@ -42,8 +42,8 @@ class ICNNDataset(Dataset):
         if test_set:
             from sklearn.utils import resample
             from sklearn.model_selection import train_test_split
-            dprom_train_df = pd.read_csv(f'datasets/{save_df.replace("icnn", "dprom")}/train.csv')
-            dprom_test_df = pd.read_csv(f'datasets/{save_df.replace("icnn", "dprom")}/test.csv')
+            dprom_train_df = pd.read_csv(f'{dataset_folder}/{save_df.replace("icnn", "dprom")}/train.csv')
+            dprom_test_df = pd.read_csv(f'{dataset_folder}/{save_df.replace("icnn", "dprom")}/test.csv')
 
             train_promoters_df = dprom_train_df[dprom_train_df['label'] == 1]
             resampled_train_df = resample(train_promoters_df, n_samples=int(num_positives*(1-split_ratio)),
@@ -56,10 +56,10 @@ class ICNNDataset(Dataset):
                                                 replace=False, random_state=0)
             test = test.append(resampled_test_df, ignore_index=True)
 
-            train.to_csv(f'datasets/{save_df}/train.csv',index=False)
-            test.to_csv(f'datasets/{save_df}/test.csv',index=False)
+            train.to_csv(f'{dataset_folder}/{save_df}/train.csv',index=False)
+            test.to_csv(f'{dataset_folder}/{save_df}/test.csv',index=False)
         if(save_df is not None):
-            self.save_dataframe(f'datasets/{save_df}/dataframe.csv')
+            self.save_dataframe(f'{dataset_folder}/{save_df}/dataframe.csv')
         example = self.dataframe.iloc[0]
         element, non_element = self.sequence_encoder(example.sequence.upper())
         self.elements_length = len(element)
