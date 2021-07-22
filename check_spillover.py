@@ -1,13 +1,41 @@
+import argparse
 import pandas as pd
+
+###########################################
+# Command line interface
+default_dir = "datasets"
+
+parser = argparse.ArgumentParser(description=r"This script will test a model's performance with ICNN dataset")
+parser.add_argument('--folder',
+        type = str,
+        help = f'Path for desired dataset folder. Default: {default_dir}. '
+        'The dataset folder contains csv files for the complete, training and testing dataset files',
+        default = default_dir
+        )
+args = parser.parse_args()
+###########################################
 
 def check_models(models):
     for model in models:
-        test_set = f"datasets/{model}/test.csv"
-        test_df = pd.read_csv(test_set)
+        complete_set = f"{args.folder}/{model}/dataframe.csv"
+        test_set = f"{args.folder}/{model}/test.csv"
+        try:
+            test_df = pd.read_csv(test_set)
+            complete_df = pd.read_csv(complete_set)
+        except:
+            print(f"Skipping(No file found): {test_set}")
+            continue
+        print(f"{complete_df.duplicated(subset='sequence', keep='first').sum()} duplicate sequences on complete dataset: {complete_set}")
+        print(f"{test_df.duplicated(subset='sequence', keep='first').sum()} duplicate sequences on test dataset: {test_set}")
         other_models = models
         for other_model in other_models:
-            train_set = f"datasets/{other_model}/train.csv"
-            train_df = pd.read_csv(train_set)
+            train_set = f"{args.folder}/{other_model}/train.csv"
+            try:
+                train_df = pd.read_csv(train_set)
+            except:
+                print(f"Skipping(No file found): {test_set}")
+                continue
+            print(f"{test_df.duplicated(subset='sequence', keep='first').sum()} duplicate sequences on train dataset: {train_set}")
             df_len = len(train_df)
             cond = train_df['sequence'].isin(test_df['sequence'])
             data_cond = train_df[cond]
