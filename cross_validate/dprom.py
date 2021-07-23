@@ -67,16 +67,16 @@ else:
     nc = 2
     crit = torch.nn.CrossEntropyLoss
     cls = NeuralNetClassifier
-ds = DPROMDataset(file=args.input, neg_file=neg_f, binary=args.binary, save_df=None)
+ds = DPROMDataset(file=args.input, neg_file=neg_f, binary=args.binary, save_df=None, drop_dups=False)
 print("Preprocessing: Preparing for stratified sampling")
 data_list = [(x, y) for x, y in tqdm(iter(ds))]
 X = np.array([col[0] for col in data_list], dtype=np.float32)
 y = np.array([col[1] for col in data_list], dtype=np.int64)
 print("Preprocessing: Done")
-net = NeuralNetClassifier(module=DPROMModule,
-                          module__num_classes=2,
+net = cls(module=DPROMModule,
+                          module__num_classes=nc,
                           module__seqs_length=ds.seqs_length,
-                          criterion=torch.nn.CrossEntropyLoss,
+                          criterion=crit,
                           max_epochs=50,
                           lr=0.001,
                           callbacks=[EarlyStopping(patience=10),

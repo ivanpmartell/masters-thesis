@@ -71,17 +71,17 @@ else:
     nc = 2
     crit = torch.nn.CrossEntropyLoss
     cls = NeuralNetClassifier
-ds = ICNNDataset(file=args.input, neg_folder=args.neg_folder, num_positives=args.pos_sample, binary=args.binary, save_df=None)
+ds = ICNNDataset(file=args.input, neg_folder=args.neg_folder, num_positives=args.pos_sample, binary=args.binary, save_df=None, drop_dups=False)
 print("Preprocessing: Preparing for stratified sampling")
 data_list = [(x, y) for x, y in tqdm(iter(ds))]
 X = [col[0] for col in data_list]
 y = np.array([col[1] for col in data_list], dtype=np.int64)
 print("Preprocessing: Done")
-net = NeuralNetClassifier(module=ICNNModule,
-                          module__num_classes=2,
+net = cls(module=ICNNModule,
+                          module__num_classes=nc,
                           module__elements_length=ds.elements_length,
                           module__non_elements_length=ds.non_elements_length,
-                          criterion=torch.nn.CrossEntropyLoss,
+                          criterion=crit,
                           max_epochs=50,
                           lr=0.001,
                           callbacks=[EarlyStopping(patience=3),

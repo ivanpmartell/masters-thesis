@@ -23,6 +23,8 @@ default_out = this_dir
 default_input = "data/human_complete.fa"
 default_neg = ""
 default_neg_size = 27731 + 8256
+default_num_channels = 300
+default_pool_size = 231
 
 parser = argparse.ArgumentParser(description=r"This script will test a model's performance with CNNProm dataset")
 parser.add_argument('-binary', 
@@ -53,6 +55,18 @@ parser.add_argument('--neg_sample',
         'The annotations file is an sga obtained from Mass Genome Annotation Data Repository',
         default = default_neg_size
         )
+parser.add_argument('--num_channels',
+        type = int,
+        help = f'Path to desired annotations file. Default: {default_num_channels}.'
+        'The annotations file is an sga obtained from Mass Genome Annotation Data Repository',
+        default = default_num_channels
+        )
+parser.add_argument('--pool_size',
+        type = int,
+        help = f'Path to desired annotations file. Default: {default_pool_size}.'
+        'The annotations file is an sga obtained from Mass Genome Annotation Data Repository',
+        default = default_pool_size
+        )
 args = parser.parse_args()
 ###########################################
 
@@ -73,16 +87,18 @@ else:
     nc = 2
     crit = torch.nn.CrossEntropyLoss
     cls = NeuralNetClassifier
-ds = CNNPROMDataset(file=args.input, neg_file=neg_f, num_negatives=args.neg_sample, binary=args.binary, save_df=None)
+ds = CNNPROMDataset(file=args.input, neg_file=neg_f, num_negatives=args.neg_sample, binary=args.binary, save_df=None, drop_dups=False)
 print("Preprocessing: Preparing for stratified sampling")
 data_list = [(x, y) for x, y in tqdm(iter(ds))]
 X = np.array([col[0] for col in data_list], dtype=np.float32)
 y = np.array([col[1] for col in data_list], dtype=np.int64)
 print("Preprocessing: Done")
-net = NeuralNetClassifier(module=CNNPROMModule,
-                          module__num_classes=2,
+net = cls(module=CNNPROMModule,
+                          module__num_classes=nc,
                           module__seqs_length=ds.seqs_length,
-                          criterion=torch.nn.CrossEntropyLoss,
+                          module__num_channels=args.num_channels,
+                          module__pool_kernel=args.pool_size,
+                          criterion=crit,
                           max_epochs=50,
                           lr=0.001,
                           callbacks=[EarlyStopping(patience=10),

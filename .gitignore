@@ -137,8 +137,14 @@ models/
 evaluation/
 results/
 datasets/
+datasets_original/
+datasets_original_clean/
 tts_results/
+tts_original_results/
+tts_orig_clean_results/
 cv_results/
+cv_original_results/
+cv_orig_clean_results/
 overlap_results/
 
 # chromosomes
