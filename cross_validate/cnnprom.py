@@ -8,7 +8,7 @@ from tqdm import tqdm
 from skorch import NeuralNetClassifier, NeuralNetBinaryClassifier
 from skorch.dataset import CVSplit
 from skorch.callbacks import EarlyStopping, ProgressBar, Checkpoint
-from sklearn.metrics import matthews_corrcoef, accuracy_score, precision_score, recall_score, confusion_matrix
+from sklearn.metrics import matthews_corrcoef, accuracy_score, precision_score, recall_score, confusion_matrix, make_scorer
 from sklearn.model_selection import cross_validate, cross_val_score
 from multiscorer.multiscorer import MultiScorer
 
@@ -25,6 +25,7 @@ default_neg = ""
 default_neg_size = 27731 + 8256
 default_num_channels = 300
 default_pool_size = 231
+num_folds=10
 
 parser = argparse.ArgumentParser(description=r"This script will test a model's performance with CNNProm dataset")
 parser.add_argument('-binary', 
@@ -101,7 +102,7 @@ net = cls(module=CNNPROMModule,
                           criterion=crit,
                           max_epochs=50,
                           lr=0.001,
-                          callbacks=[EarlyStopping(patience=10),
+                          callbacks=[EarlyStopping(patience=2),
                                      ProgressBar()],
                           batch_size=16,
                           optimizer=torch.optim.Adam,
@@ -110,7 +111,8 @@ net = cls(module=CNNPROMModule,
 
 print("Cross Validation: Started")
 #scoring metrics can be modified. Predefined metrics: https://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter
-def confusion_matrix_scorer(y, y_pred):
+def confusion_matrix_scorer(clf, X, y):
+    y_pred = clf.predict(X)
     cm = confusion_matrix(y, y_pred)
     tn = cm[0, 0]
     tp = cm[1, 1]
@@ -121,16 +123,10 @@ def confusion_matrix_scorer(y, y_pred):
             'fn': fn, 'tp': tp,
             'sensitivity': tp/(tp+fn), 'specificity': tn/(tn+fp),
             'precision': tp/(tp+fp), 'mcc': mcc, 'accuracy': (tp + tn)/(tp + tn + fp + fn) }
-scorer = MultiScorer({
-  'confusion matrix': (confusion_matrix_scorer, {})
-})
-cross_validate(net, X, y, scoring=scorer, cv=10, verbose=1)
+results = cross_validate(net, X, y, scoring=confusion_matrix_scorer, cv=num_folds, verbose=1)
 print("Cross Validation: Done")
-results = scorer.get_results()
 
 with open(os.path.join(model_folder, "cv_results.txt"), 'w') as f:
-    for metric in results['confusion matrix'][0].keys():
-        f.write("%s: %s\n" % (metric, average(results['confusion matrix'][0][metric])))
-    f.write("\n\n")
-    f.write(str(results))
+    for i in range(num_folds):
+        f.write(f'{results["test_tn"][i]},{results["test_fp"][i]},{results["test_fn"][i]},{results["test_tp"][i]},{results["test_sensitivity"][i]},{results["test_specificity"][i]},{results["test_precision"][i]},{results["test_mcc"][i]},{results["test_accuracy"][i]}\n')
 print("Results written to file")

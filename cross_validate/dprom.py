@@ -22,7 +22,7 @@ this_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
 default_out = os.path.join(os.path.dirname(this_dir), "results.csv")
 default_input = "data/human_complete.fa"
 default_neg = ""
-default_mod = "models/dprom/model.pt"
+num_folds=10
 
 parser = argparse.ArgumentParser(description=r"This script will test a model's performance with DProm dataset")
 parser.add_argument('-binary', 
@@ -88,7 +88,8 @@ net = cls(module=DPROMModule,
 
 print("Cross Validation: Started")
 #scoring metrics can be modified. Predefined metrics: https://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter
-def confusion_matrix_scorer(y, y_pred):
+def confusion_matrix_scorer(clf, X, y):
+    y_pred = clf.predict(X)
     cm = confusion_matrix(y, y_pred)
     tn = cm[0, 0]
     tp = cm[1, 1]
@@ -98,17 +99,11 @@ def confusion_matrix_scorer(y, y_pred):
     return {'tn': tn , 'fp': fp,
             'fn': fn, 'tp': tp,
             'sensitivity': tp/(tp+fn), 'specificity': tn/(tn+fp),
-            'precision': tp/(tp+fp), 'mcc': mcc }
-scorer = MultiScorer({
-  'confusion matrix': (confusion_matrix_scorer, {})
-})
-cross_validate(net, X, y, scoring=scorer, cv=10, verbose=1)
+            'precision': tp/(tp+fp), 'mcc': mcc, 'accuracy': (tp + tn)/(tp + tn + fp + fn) }
+results = cross_validate(net, X, y, scoring=confusion_matrix_scorer, cv=num_folds, verbose=1)
 print("Cross Validation: Done")
-results = scorer.get_results()
 
 with open(os.path.join(model_folder, "cv_results.txt"), 'w') as f:
-    for metric in results['confusion matrix'][0].keys():
-        f.write("%s: %s\n" % (metric, average(results['confusion matrix'][0][metric])))
-    f.write("\n\n")
-    f.write(str(results))
+    for i in range(num_folds):
+        f.write(f'{results["test_tn"][i]},{results["test_fp"][i]},{results["test_fn"][i]},{results["test_tp"][i]},{results["test_sensitivity"][i]},{results["test_specificity"][i]},{results["test_precision"][i]},{results["test_mcc"][i]},{results["test_accuracy"][i]}\n')
 print("Results written to file")
