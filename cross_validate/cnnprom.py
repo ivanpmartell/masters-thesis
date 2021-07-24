@@ -10,7 +10,6 @@ from skorch.dataset import CVSplit
 from skorch.callbacks import EarlyStopping, ProgressBar, Checkpoint
 from sklearn.metrics import matthews_corrcoef, accuracy_score, precision_score, recall_score, confusion_matrix, make_scorer
 from sklearn.model_selection import cross_validate, cross_val_score
-from multiscorer.multiscorer import MultiScorer
 
 sys.path.append(os.path.join(sys.path[0], '..'))
 from CNNPROM.module import CNNPROMModule
