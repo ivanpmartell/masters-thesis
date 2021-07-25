@@ -84,7 +84,9 @@ net = cls(module=ICNNModule,
                           max_epochs=50,
                           lr=0.001,
                           callbacks=[EarlyStopping(patience=10),
-                                     ProgressBar()],
+                                     ProgressBar(),
+                                     Checkpoint(dirname=model_folder,
+                                                f_params='model.pt')],
                           batch_size=8,
                           optimizer=torch.optim.SGD,
                           optimizer__momentum=0.90,
@@ -93,6 +95,9 @@ net = cls(module=ICNNModule,
 
 print("Cross Validation: Started")
 #scoring metrics can be modified. Predefined metrics: https://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter
+out_path = os.path.join(model_folder, "cv_results.txt")
+with open(out_path, 'w') as f:
+    f.write("tn,fp,fn,tp,sn,sp,ppv,mcc,acc\n")
 def confusion_matrix_scorer(clf, X, y):
     y_pred = clf.predict(X)
     cm = confusion_matrix(y, y_pred)
@@ -100,15 +105,16 @@ def confusion_matrix_scorer(clf, X, y):
     tp = cm[1, 1]
     fn = cm[1, 0]
     fp = cm[0, 1]
+    sensitivity = tp/(tp+fn)
+    specificity = tn/(tn+fp)
+    precision = tp/(tp+fp)
     mcc = matthews_corrcoef(y, y_pred)
+    accuracy = (tp + tn)/(tp + tn + fp + fn)
+    with open(out_path, 'a') as f:
+        f.write(f'{tn},{fp},{fn},{tp},{sensitivity},{specificity},{precision},{mcc},{accuracy}\n')
     return {'tn': tn , 'fp': fp,
             'fn': fn, 'tp': tp,
-            'sensitivity': tp/(tp+fn), 'specificity': tn/(tn+fp),
-            'precision': tp/(tp+fp), 'mcc': mcc, 'accuracy': (tp + tn)/(tp + tn + fp + fn) }
+            'sensitivity': sensitivity, 'specificity': specificity,
+            'precision': precision, 'mcc': mcc, 'accuracy': accuracy }
 results = cross_validate(net, X, y, scoring=confusion_matrix_scorer, cv=num_folds, verbose=1)
 print("Cross Validation: Done")
-
-with open(os.path.join(model_folder, "cv_results.txt"), 'w') as f:
-    for i in range(num_folds):
-        f.write(f'{results["test_tn"][i]},{results["test_fp"][i]},{results["test_fn"][i]},{results["test_tp"][i]},{results["test_sensitivity"][i]},{results["test_specificity"][i]},{results["test_precision"][i]},{results["test_mcc"][i]},{results["test_accuracy"][i]}\n')
-print("Results written to file")
