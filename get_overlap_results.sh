@@ -1,12 +1,12 @@
 mkdir overlap_results
 # CNNPROM RESULTS
-python train/cnnprom.py --input datasets_dups/cnnprom_TATA/dataframe.csv --output overlap_results/cnnprom_TATA/
-python test/cnnprom.py --input datasets_dups/cnnprom_TATA/dataframe.csv --output overlap_results/cnnprom_TATA/results_cnnprom_TATA.csv --model overlap_results/cnnprom_TATA/model.pt
+python train/cnnprom.py --input datasets_dups/cnnprom_TATA/dataframe.csv --output overlap_results/cnnprom_TATA/ --pool_size 4 --num_channels 200
+python test/cnnprom.py --input datasets_dups/cnnprom_TATA/dataframe.csv --output overlap_results/cnnprom_TATA/results_cnnprom_TATA.csv --model overlap_results/cnnprom_TATA/model.pt --pool_size 4 --num_channels 200
 python analysis.py --output overlap_results/cnnprom_TATA/cnnprom_TATA_results/ --results overlap_results/cnnprom_TATA/results_cnnprom_TATA.csv
-python test/cnnprom.py --input datasets_dups/dprom_TATA/dataframe.csv --output overlap_results/cnnprom_TATA/results_dprom_TATA.csv --model overlap_results/cnnprom_TATA/model.pt
+python test/cnnprom.py --input datasets_dups/dprom_TATA/dataframe.csv --output overlap_results/cnnprom_TATA/results_dprom_TATA.csv --model overlap_results/cnnprom_TATA/model.pt --pool_size 4 --num_channels 200
 python analysis.py --output overlap_results/cnnprom_TATA/dprom_TATA_results/ --results overlap_results/cnnprom_TATA/results_dprom_TATA.csv
 
-python train/cnnprom.py --input datasets_dups/cnnprom_nonTATA/dataframe.csv --output overlap_results/cnnprom_nonTATA/
+python train/cnnprom.py --input datasets_dups/cnnprom_nonTATA/dataframe.csv --output overlap_results_test/cnnprom_nonTATA/
 python test/cnnprom.py --input datasets_dups/cnnprom_nonTATA/dataframe.csv --output overlap_results/cnnprom_nonTATA/results_cnnprom_nonTATA.csv --model overlap_results/cnnprom_nonTATA/model.pt
 python analysis.py --output overlap_results/cnnprom_nonTATA/cnnprom_nonTATA_results/ --results overlap_results/cnnprom_nonTATA/results_cnnprom_nonTATA.csv
 python test/cnnprom.py --input datasets_dups/dprom_nonTATA/dataframe.csv --output overlap_results/cnnprom_nonTATA/results_dprom_nonTATA.csv --model overlap_results/cnnprom_nonTATA/model.pt

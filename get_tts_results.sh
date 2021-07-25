@@ -1,9 +1,9 @@
 mkdir tts_results
 # CNNPROM RESULTS
-python train/cnnprom.py --input datasets/cnnprom_TATA/train.csv --output tts_results/cnnprom_TATA/
-python test/cnnprom.py --input datasets/cnnprom_TATA/test.csv --output tts_results/cnnprom_TATA/results_cnnprom_TATA.csv --model tts_results/cnnprom_TATA/model.pt
+python train/cnnprom.py --input datasets/cnnprom_TATA/train.csv --output tts_results/cnnprom_TATA/ --pool_size 4 --num_channels 200
+python test/cnnprom.py --input datasets/cnnprom_TATA/test.csv --output tts_results/cnnprom_TATA/results_cnnprom_TATA.csv --model tts_results/cnnprom_TATA/model.pt --pool_size 4 --num_channels 200
 python analysis.py --output tts_results/cnnprom_TATA/cnnprom_TATA_results/ --results tts_results/cnnprom_TATA/results_cnnprom_TATA.csv
-python test/cnnprom.py --input datasets/dprom_TATA/test.csv --output tts_results/cnnprom_TATA/results_dprom_TATA.csv --model tts_results/cnnprom_TATA/model.pt
+python test/cnnprom.py --input datasets/dprom_TATA/test.csv --output tts_results/cnnprom_TATA/results_dprom_TATA.csv --model tts_results/cnnprom_TATA/model.pt --pool_size 4 --num_channels 200
 python analysis.py --output tts_results/cnnprom_TATA/dprom_TATA_results/ --results tts_results/cnnprom_TATA/results_dprom_TATA.csv
 
 python train/cnnprom.py --input datasets/cnnprom_nonTATA/train.csv --output tts_results/cnnprom_nonTATA/

@@ -1,5 +1,5 @@
 mkdir cv_results
-python cross_validate/cnnprom.py --input datasets/cnnprom_TATA/dataframe.csv --output cv_results/cnnprom_TATA/
+python cross_validate/cnnprom.py --input datasets/cnnprom_TATA/dataframe.csv --output cv_results/cnnprom_TATA/ --pool_size 4 --num_channels 200
 python cross_validate/cnnprom.py --input datasets/cnnprom_nonTATA/dataframe.csv --output cv_results/cnnprom_nonTATA/
 python cross_validate/cnnprom.py --input datasets/cnnprom_complete/dataframe.csv --output cv_results/cnnprom_complete/
 
